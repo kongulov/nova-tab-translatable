@@ -5,7 +5,6 @@ namespace Kongulov\NovaTabTranslatable;
 use Drobee\NovaSluggable\SluggableText;
 use Epartment\NovaDependencyContainer\NovaDependencyContainer;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\Resources\MergeValue;
 use Laravel\Nova\Fields\Field;
 use Laravel\Nova\Http\Requests\NovaRequest;
 
@@ -36,11 +35,11 @@ class NovaTabTranslatable extends Field
     public function __construct(array $fields = [])
     {
         parent::__construct('');
-        $config = config('nova_tab_translatable');
+        $config = config('tab-translatable');
         if($config['source'] == 'database')
             $this->locales = $config['database']['model']::pluck($config['database']['code_field'])->toArray();
         else
-            $this->locales = config('nova_tab_translatable.locales');
+            $this->locales = $config['locales'];
 
         $this->displayLocalizedNameUsingCallback = self::$displayLocalizedNameByDefaultUsingCallback ?? function (Field $field, string $locale) {
                 return ucfirst($field->name) . " [{$locale}]";
@@ -102,12 +101,12 @@ class NovaTabTranslatable extends Field
             $model->setTranslation($originalAttribute, $locale, $request->get($requestAttribute));
         });
 
-        $translatedField = $this->compatibilityWithOtherPlugins($translatedField, $locale, $originalAttribute);
+        $translatedField = $this->compatibilityWithOtherPlugins($translatedField);
 
         return $translatedField;
     }
 
-    protected function compatibilityWithOtherPlugins($translatedField, $locale, $originalAttribute)
+    protected function compatibilityWithOtherPlugins($translatedField)
     {
 
 

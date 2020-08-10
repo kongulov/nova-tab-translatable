@@ -20,8 +20,8 @@ class FieldServiceProvider extends ServiceProvider
             Nova::style('nova-tab-translatable', __DIR__.'/../dist/css/field.css');
         });
         $this->publishes([
-            __DIR__ . '/../config/nova_tab_translatable.php' => config_path('nova_tab_translatable.php'),
-        ], 'nova-tab-translatable-config');
+            __DIR__ . '/../config/tab-translatable.php' => config_path('tab-translatable.php'),
+        ], 'tab-translatable-config');
     }
 
     /**
