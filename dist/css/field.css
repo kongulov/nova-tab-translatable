@@ -4,6 +4,7 @@
   display: flex;
   border-bottom: 1px solid #eef1f4;
   margin-top: 1rem;
+  padding-top: 1rem;
 }
 
 #nova-tab-translatable .tab-items .tab-item {
@@ -17,6 +18,7 @@
   border-top-left-radius: .25rem;
   border-top-right-radius: .25rem;
   cursor: pointer;
+  text-transform: uppercase;
 }
 
 #nova-tab-translatable .tab-items .tab-item.active {
