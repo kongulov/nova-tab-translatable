@@ -5,6 +5,10 @@ This package contains a `NovaTabTranslatable` class you can use to make any Nova
 Imagine you have this `fields` method in a Post Nova resource:
 
 ```php
+use Kongulov\NovaTabTranslatable\NovaTabTranslatable;
+
+...
+
 public function fields(Request $request)
 {
     return [
@@ -40,10 +44,10 @@ Install the package in a Laravel Nova project via Composer:
 composer require kongulov/nova-tab-translatable
 
 # Publish configuration
-php artisan vendor:publish --tag="nova-tab-translatable-config"
+php artisan vendor:publish --tag="tab-translatable-config"
 ```
 
-This is the contents of the file which will be published at `config/nova_tab_translatable.php`
+This is the contents of the file which will be published at `config/tab-translatable.php`
 ```php
 <?php
 
@@ -79,6 +83,11 @@ You must prepare your model [as explained](https://github.com/spatie/laravel-tra
 Now that your model is configured for translations, you can use `NovaTabTranslatable` in the related Nova resource. Any fields you want to display in a multilingual way can be passed as an array to `NovaTabTranslatable`. 
 
 ```php
+
+use Kongulov\NovaTabTranslatable\NovaTabTranslatable;
+
+...
+
 public function fields(Request $request)
 {
     return [
