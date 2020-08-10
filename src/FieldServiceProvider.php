@@ -21,7 +21,7 @@ class FieldServiceProvider extends ServiceProvider
         });
         $this->publishes([
             __DIR__ . '/../config/nova_tab_translatable.php' => config_path('nova_tab_translatable.php'),
-        ], 'config');
+        ], 'nova-tab-translatable-config');
     }
 
     /**
