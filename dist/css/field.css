@@ -1,0 +1,32 @@
+#nova-tab-translatable .tab-items {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  border-bottom: 1px solid #eef1f4;
+  margin-top: 1rem;
+}
+
+#nova-tab-translatable .tab-items .tab-item {
+  display: block;
+  color: #4099de;
+  text-decoration: none;
+  background-color: transparent;
+  padding: .5rem 1rem;
+  margin-bottom: -1px;
+  border: 1px solid transparent;
+  border-top-left-radius: .25rem;
+  border-top-right-radius: .25rem;
+  cursor: pointer;
+}
+
+#nova-tab-translatable .tab-items .tab-item.active {
+  color: #7c858e;
+  background-color: #fff;
+  border-color: #eef1f4 #eef1f4 #fff;
+  pointer-events: none;
+}
+
+#nova-tab-translatable .tab-items .tab-item.has-error {
+  color: #e74444;
+}
+
