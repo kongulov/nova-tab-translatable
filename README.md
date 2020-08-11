@@ -119,8 +119,6 @@ But if you want to make the field required in all languages, then use the larave
 ```php
 NovaTabTranslatable::make([
     Text::make('Title')->rules('required'),
-    // OR
-    Text::make('Title')->required(),
 ]),
 ```
 
