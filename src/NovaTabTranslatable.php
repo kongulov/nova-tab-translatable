@@ -5,6 +5,7 @@ namespace Kongulov\NovaTabTranslatable;
 use Drobee\NovaSluggable\SluggableText;
 use Epartment\NovaDependencyContainer\NovaDependencyContainer;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 use Laravel\Nova\Fields\Field;
 use Laravel\Nova\Http\Requests\NovaRequest;
 
@@ -42,10 +43,12 @@ class NovaTabTranslatable extends Field
             $this->locales = $config['locales'];
 
         $this->displayLocalizedNameUsingCallback = self::$displayLocalizedNameByDefaultUsingCallback ?? function (Field $field, string $locale) {
-                return ucfirst($field->name) . " [{$locale}]";
+                return ucfirst($field->name) . " [{$locale}] ";
             };
 
-        $this->collectAllFields($fields);
+        $this->originalFields = $fields;
+
+        //$this->collectAllFields($fields);
         $this->createTranslatableFields();
 
         $this->withMeta([
@@ -55,17 +58,17 @@ class NovaTabTranslatable extends Field
         ]);
     }
 
-    protected function collectAllFields($fields)
+    /*protected function collectAllFields($fields)
     {
         foreach ($fields as $field) {
             $this->data[] = $field;
         }
-    }
+    }*/
 
     protected function createTranslatableFields()
     {
         collect($this->locales)
-            ->crossJoin($this->data)
+            ->crossJoin($this->originalFields)
             ->eachSpread(function (string $locale, Field $field) {
                 $translatedField = $this->createTranslatedField($field, $locale);
 
@@ -84,6 +87,15 @@ class NovaTabTranslatable extends Field
         $translatedField->withMeta([
             'locale' => $locale
         ]);
+
+        foreach ($translatedField->rules as $key => &$rule) {
+            if (strpos($rule, 'required_lang') !== false){
+                $langs = explode(',', Str::after($rule,'required_lang:'));
+
+                if (in_array($locale, $langs)) $rule = 'required';
+                else unset($translatedField->rules[$key]);
+            }
+        }
 
         $translatedField->name = (count($this->locales) > 1)
             ? ($this->displayLocalizedNameUsingCallback)($translatedField, $locale)
@@ -108,8 +120,6 @@ class NovaTabTranslatable extends Field
 
     protected function compatibilityWithOtherPlugins($translatedField)
     {
-
-
         if ($translatedField instanceof SluggableText) {
             $translatedField->slug($translatedField->meta['slug'] . ' [' . $translatedField->meta['locale'] . ']');
         } elseif ($translatedField instanceof NovaDependencyContainer) {
@@ -118,7 +128,6 @@ class NovaTabTranslatable extends Field
 
         return $translatedField;
     }
-
 
     public function resolve($resource, $attribute = null)
     {
@@ -147,7 +156,6 @@ class NovaTabTranslatable extends Field
     protected function getSituationalRulesSet(NovaRequest $request, string $propertyName = 'rules')
     {
         $fieldsRules = [$this->attribute => []];
-
 
         /** @var Field $field */
         foreach ($this->data as $field) {

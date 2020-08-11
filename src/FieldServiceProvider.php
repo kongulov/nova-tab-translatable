@@ -2,7 +2,9 @@
 
 namespace Kongulov\NovaTabTranslatable;
 
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\ServiceProvider;
+use Kongulov\NovaTabTranslatable\Rules\RequiredLang;
 use Laravel\Nova\Events\ServingNova;
 use Laravel\Nova\Nova;
 
@@ -19,6 +21,7 @@ class FieldServiceProvider extends ServiceProvider
             Nova::script('nova-tab-translatable', __DIR__.'/../dist/js/field.js');
             Nova::style('nova-tab-translatable', __DIR__.'/../dist/css/field.css');
         });
+
         $this->publishes([
             __DIR__ . '/../config/tab-translatable.php' => config_path('tab-translatable.php'),
         ], 'tab-translatable-config');
