@@ -18,8 +18,6 @@ class NovaTabTranslatable extends Field
      */
     public $component = 'nova-tab-translatable';
 
-    public $showOnIndex = false;
-
     public $data = [];
     public $locales = [];
     public $originalFields = [];
@@ -35,7 +33,7 @@ class NovaTabTranslatable extends Field
 
     public function __construct(array $fields = [])
     {
-        parent::__construct('');
+        parent::__construct('Tab translatable');
         $config = config('tab-translatable');
         if($config['source'] == 'database')
             $this->locales = $config['database']['model']::pluck($config['database']['code_field'])->toArray();
@@ -43,7 +41,7 @@ class NovaTabTranslatable extends Field
             $this->locales = $config['locales'];
 
         $this->displayLocalizedNameUsingCallback = self::$displayLocalizedNameByDefaultUsingCallback ?? function (Field $field, string $locale) {
-                return ucfirst($field->name) . " [{$locale}] ";
+                return ucfirst($field->name) . " [{$locale}]";
             };
 
         $this->originalFields = $fields;
@@ -77,17 +75,15 @@ class NovaTabTranslatable extends Field
 
         $translatedField->attribute = 'translations';
         $translatedField->withMeta([
-            'locale' => $locale
+            'locale' => $locale,
+            'showOnIndex' => $translatedField->showOnIndex,
+            'showOnDetail' => $translatedField->showOnDetail,
+            'showOnCreation' => $translatedField->showOnCreation,
+            'showOnUpdate' => $translatedField->showOnUpdate,
+            'onlyOnDetail' => $translatedField->onlyOnDetail,
         ]);
 
-        foreach ($translatedField->rules as $key => &$rule) {
-            if (strpos($rule, 'required_lang') !== false){
-                $langs = explode(',', Str::after($rule,'required_lang:'));
-
-                if (in_array($locale, $langs)) $rule = 'required';
-                else unset($translatedField->rules[$key]);
-            }
-        }
+        $translatedField = $this->setRules($translatedField);
 
         $translatedField->name = (count($this->locales) > 1)
             ? ($this->displayLocalizedNameUsingCallback)($translatedField, $locale)
@@ -108,6 +104,39 @@ class NovaTabTranslatable extends Field
         $translatedField = $this->compatibilityWithOtherPlugins($translatedField);
 
         return $translatedField;
+    }
+
+    public function setRules($translatedField){
+
+        $translatedField->creationRules = $this->setUnique($translatedField->creationRules, $translatedField->meta['locale']);
+        $translatedField->updateRules = $this->setUnique($translatedField->updateRules, $translatedField->meta['locale']);
+
+        foreach ($translatedField->rules as $key => &$rule) {
+            if (strpos($rule, 'required_lang') !== false){
+                $langs = explode(',', Str::after($rule,'required_lang:'));
+
+                if (in_array($translatedField->meta['locale'], $langs)) $rule = 'required';
+                else unset($translatedField->rules[$key]);
+            }
+        }
+
+        return $translatedField;
+    }
+
+    public function setUnique($rules, $locale){
+        foreach ($rules as &$rule) {
+            if (strpos($rule, 'unique:') !== false){
+                $before = Str::before($rule,'unique:');
+                $after = Str::after($rule,'unique:');
+                $explode = explode(',', $after);
+
+                $explode[1] = $explode[1].'->'.$locale;
+
+                $rule = $before.'unique:'.implode(',', $explode);
+            }
+        }
+
+        return $rules;
     }
 
     protected function compatibilityWithOtherPlugins($translatedField)
@@ -149,7 +178,6 @@ class NovaTabTranslatable extends Field
     {
         $fieldsRules = [$this->attribute => []];
 
-        /** @var Field $field */
         foreach ($this->data as $field) {
             $fieldsRules[$field->attribute] = is_callable($field->{$propertyName})
                 ? call_user_func($field->{$propertyName}, $request)

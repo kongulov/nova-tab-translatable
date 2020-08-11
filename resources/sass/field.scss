@@ -31,3 +31,40 @@
         }
     }
 }
+
+.nova-tab-translatable-index{
+
+    .tab-items {
+        display: flex;
+        border-bottom: 1px solid #eef1f4;
+        margin-top: 4px;
+        padding: 0 10px;
+
+        .tab-item {
+            display: block;
+            color: #4099de;
+            text-decoration: none;
+            background-color: transparent;
+            margin-bottom: -1px;
+            border: 1px solid transparent;
+            border-top-left-radius: .25rem;
+            border-top-right-radius: .25rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            padding: 5px 10px;
+            font-size: 11px;
+
+            &.active {
+                color: #7c858e;
+                background-color: #fff;
+                border-color: #eef1f4 #eef1f4 #fff;
+                pointer-events: none;
+            }
+        }
+    }
+
+    .tab-contents{
+        font-size: 14px;
+        padding: 6px 0;
+    }
+}
