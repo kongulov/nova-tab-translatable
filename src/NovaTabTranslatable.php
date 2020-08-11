@@ -48,7 +48,6 @@ class NovaTabTranslatable extends Field
 
         $this->originalFields = $fields;
 
-        //$this->collectAllFields($fields);
         $this->createTranslatableFields();
 
         $this->withMeta([
@@ -57,13 +56,6 @@ class NovaTabTranslatable extends Field
             'originalFieldsCount' => count($fields),
         ]);
     }
-
-    /*protected function collectAllFields($fields)
-    {
-        foreach ($fields as $field) {
-            $this->data[] = $field;
-        }
-    }*/
 
     protected function createTranslatableFields()
     {

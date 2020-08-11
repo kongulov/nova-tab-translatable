@@ -2,9 +2,7 @@
 
 namespace Kongulov\NovaTabTranslatable;
 
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\ServiceProvider;
-use Kongulov\NovaTabTranslatable\Rules\RequiredLang;
 use Laravel\Nova\Events\ServingNova;
 use Laravel\Nova\Nova;
 
