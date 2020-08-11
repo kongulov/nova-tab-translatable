@@ -104,6 +104,24 @@ public function fields(Request $request)
 }
 ```
 
+If you want to make the field required only in certain languages, then you can use the `required_lang` rule,
+
+```php
+NovaTabTranslatable::make([
+    Text::make('Title')->rules('required_lang:en,fr'),
+    Trix::make('text')->rules('required_lang:en,fr'),
+    Text::make('Keywords'),
+    Text::make('Description'),
+]),
+```
+
+But if you want to make the field required in all languages, then use the laravel rules
+```php
+NovaTabTranslatable::make([
+    Text::make('Title')->rules('required'),
+]),
+```
+
 ## Credits
 
 - [Ramiz Kongulov](https://github.com/kongulov)
