@@ -11,7 +11,7 @@
                 <div class="table-row" v-for="(component, index) in field.fields" v-show="selectedLang === component.locale && component.showOnDetail">
                     <div class="table-cell p-2">{{ componentName(component) }}</div>
                     <div class="table-cell p-2">&nbsp;:&nbsp;</div>
-                    <div class="table-cell p-2">{{ component.value }}</div>
+                    <div class="table-cell p-2" v-html="component.value"></div>
                 </div>
             </div>
         </div>
