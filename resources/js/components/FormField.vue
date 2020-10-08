@@ -3,7 +3,7 @@
         <div class="tab-items px-8">
             <span class="tab-item" v-for="lang in field.languages"
                   :class="{'active':selectedLang === lang, 'has-error':checkError(lang)}" @click="selectedLang = lang">
-                {{ lang }}
+                {{ lang }} <span class="text-danger text-sm">{{ field.requiredLocales[lang] ? '*' : '' }}</span>
             </span>
         </div>
         <div class="tab-contents">
@@ -44,6 +44,11 @@ export default {
     mounted() {
         this.selectedLang = this.field.languages[0] ? this.field.languages[0] : '';
     },
+    watch:{
+        errors() {
+            this.switchToErrorTab();
+        }
+    },
     methods: {
         setInitialValue() {
             this.value = this.field.value || ''
@@ -61,9 +66,20 @@ export default {
         resolveComponentName(field) {
             return field.prefixComponent ? 'form-' + field.component : field.component
         },
+        switchToErrorTab() {
+            Object.keys(this.errors.errors).find((key) => {
+                let lang = key.substr(key.length - 2);
+                if (Object.keys(this.field.requiredLocales).includes(lang)) {
+                    this.selectedLang = lang;
+                    return true;
+                }
+            })
+        },
         checkError(lang) {
             for (var key in this.errors.errors) {
-                if (key.substr(key.length - 2) === lang) return true;
+                if (key.substr(key.length - 2) === lang) {
+                    return true;
+                }
             }
 
             return false;

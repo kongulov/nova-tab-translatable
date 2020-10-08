@@ -20,6 +20,7 @@ class NovaTabTranslatable extends Field
 
     public $data = [];
     public $locales = [];
+    public $requiredLocales = [];
     public $originalFields = [];
     public $translatedFieldsByLocale = [];
 
@@ -52,6 +53,7 @@ class NovaTabTranslatable extends Field
             'languages' => $this->locales,
             'fields' => $this->data,
             'originalFieldsCount' => count($fields),
+            'requiredLocales' => $this->requiredLocales,
         ]);
     }
 
@@ -115,9 +117,19 @@ class NovaTabTranslatable extends Field
             if (strpos($rule, 'required_lang') !== false){
                 $langs = explode(',', Str::after($rule,'required_lang:'));
 
-                if (in_array($translatedField->meta['locale'], $langs)) $rule = 'required';
+                if (in_array($translatedField->meta['locale'], $langs)){
+                    $rule = 'required';
+                    $translatedField->requiredCallback = true;
+                }
                 else unset($translatedField->rules[$key]);
             }
+            elseif ($rule === 'required') {
+                $translatedField->requiredCallback = true;
+            }
+        }
+
+        if ($translatedField->requiredCallback){
+            $this->requiredLocales[$translatedField->meta['locale']] = $translatedField->requiredCallback;
         }
 
         return $translatedField;
