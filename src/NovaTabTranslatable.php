@@ -7,6 +7,7 @@ use Epartment\NovaDependencyContainer\NovaDependencyContainer;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Laravel\Nova\Fields\Field;
+use Laravel\Nova\Fields\Slug;
 use Laravel\Nova\Http\Requests\NovaRequest;
 
 class NovaTabTranslatable extends Field
@@ -155,7 +156,11 @@ class NovaTabTranslatable extends Field
     {
         if ($translatedField instanceof SluggableText) {
             $translatedField->slug($translatedField->meta['slug'] . ' [' . $translatedField->meta['locale'] . ']');
-        } elseif ($translatedField instanceof NovaDependencyContainer) {
+        }
+        elseif ($translatedField instanceof Slug) {
+            $translatedField->from('translations_'.$translatedField->from . '_' . $translatedField->meta['locale']);
+        }
+        elseif ($translatedField instanceof NovaDependencyContainer) {
             // @todo
         }
 
