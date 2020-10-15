@@ -19,6 +19,7 @@ class NovaTabTranslatable extends Field
      */
     public $component = 'nova-tab-translatable';
 
+    public $name = 'Tab translatable';
     public $data = [];
     public $locales = [];
     public $requiredLocales = [];
@@ -35,7 +36,7 @@ class NovaTabTranslatable extends Field
 
     public function __construct(array $fields = [])
     {
-        parent::__construct('Tab translatable');
+        parent::__construct($this->name);
         $config = config('tab-translatable');
         if($config['source'] == 'database')
             $this->locales = $config['database']['model']::pluck($config['database']['code_field'])->toArray();
@@ -43,8 +44,8 @@ class NovaTabTranslatable extends Field
             $this->locales = $config['locales'];
 
         $this->displayLocalizedNameUsingCallback = self::$displayLocalizedNameByDefaultUsingCallback ?? function (Field $field, string $locale) {
-                return ucfirst($field->name) . " [{$locale}]";
-            };
+            return ucfirst($field->name) . " [{$locale}]";
+        };
 
         $this->originalFields = $fields;
 
@@ -56,6 +57,12 @@ class NovaTabTranslatable extends Field
             'originalFieldsCount' => count($fields),
             'requiredLocales' => $this->requiredLocales,
         ]);
+    }
+
+    public function setTitle($title){
+        $this->name = $title;
+
+        return $this;
     }
 
     protected function createTranslatableFields()

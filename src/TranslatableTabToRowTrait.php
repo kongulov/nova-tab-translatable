@@ -8,7 +8,7 @@ use Illuminate\Support\Collection;
 use Laravel\Nova\Fields\FieldCollection;
 use Laravel\Nova\Http\Requests\NovaRequest;
 
-trait TranslatableTabTrait
+trait TranslatableTabToRowTrait
 {
     protected $childFieldsArr = [];
 
@@ -22,16 +22,27 @@ trait TranslatableTabTrait
         $fields = $this->filter($this->fields($request));
         $availableFields = [];
 
-        foreach ($fields as $field) {
+        foreach ($fields as $key => $field) {
             if ($field instanceof NovaTabTranslatable) {
                 $availableFields[] = $this->filterFieldForRequest($field, $request);
+                if($this->extractableRequest($request, $this->model())) {
+                    if ($this->doesRouteRequireChildFields()) {
+                        $this->extractChildFields($field->originalFields, $key);
+                    }
+                }
             } else {
                 $availableFields[] = $this->filterFieldForRequest($field, $request);
             }
         }
 
         if ($this->childFieldsArr) {
-            $availableFields = array_merge($availableFields, $this->childFieldsArr);
+            for ($i = count($fields)-1; $i >= 0; $i--){
+                $field = $fields[$i];
+                if ($field instanceof NovaTabTranslatable) {
+                    array_splice($availableFields, $i+1,0, $this->childFieldsArr[$i]);
+                    unset($availableFields[$i]);
+                }
+            }
         }
 
 
@@ -86,12 +97,16 @@ trait TranslatableTabTrait
      */
     protected function doesRouteRequireChildFields(): bool
     {
+
         return Str::endsWith(Route::currentRouteAction(), [
-            'FieldDestroyController@handle',
+            /*'FieldDestroyController@handle',
             'ResourceUpdateController@handle',
             'ResourceStoreController@handle',
             'AssociatableController@index',
-            'MorphableController@index',
+            'MorphableController@index',*/
+
+            'ResourceIndexController@handle',
+            'ResourceShowController@handle',
         ]);
     }
 
@@ -99,16 +114,16 @@ trait TranslatableTabTrait
      * @param  [array] $childFields [meta fields]
      * @return void
      */
-    protected function extractChildFields($childFields)
+    protected function extractChildFields($childFields, $key)
     {
         foreach ($childFields as $childField) {
             if ($childField instanceof NovaTabTranslatable) {
-                $this->extractChildFields($childField->data);
+                $this->extractChildFields($childField->data, $key);
             } else {
                 if (array_search($childField->attribute, array_column($this->childFieldsArr, 'attribute')) === false) {
                     // @todo: we should not randomly apply rules to child-fields.
                     $childField = $this->applyRulesForChildFields($childField);
-                    $this->childFieldsArr[] = $childField;
+                    $this->childFieldsArr[$key][] = $childField;
                 }
             }
         }
