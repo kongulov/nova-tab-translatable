@@ -122,6 +122,22 @@ NovaTabTranslatable::make([
 ]),
 ```
 
+* Replace field name
+```php
+NovaTabTranslatable::make([
+    Text::make('Title')->rules('required'),
+])->setTitle('Own Title'),
+```
+
+* If on the index and detail pages you want to turn off the tab and show it each as a row, use trait `TranslatableTabToRowTrait` in your resource
+```php
+class YourResource extends Resource
+{
+    use TranslatableTabToRowTrait;
+    ...
+}
+```
+
 ## Credits
 
 - [Ramiz Kongulov](https://github.com/kongulov)
