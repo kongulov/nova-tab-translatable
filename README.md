@@ -1,4 +1,8 @@
 # Making Nova Tab Translatable
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/kongulov/nova-tab-translatable?style=flat-square)](https://packagist.org/packages/kongulov/nova-tab-translatable)
+![Licence](https://img.shields.io/github/license/kongulov/nova-tab-translatable?style=flat-square)
+[![Total Downloads](https://poser.pugx.org/kongulov/nova-tab-translatable/downloads?format=flat-square)](https://packagist.org/packages/kongulov/nova-tab-translatable)
+
 
 This package contains a `NovaTabTranslatable` class you can use to make any Nova field type translatable with tabs.
 
