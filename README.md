@@ -36,7 +36,7 @@ That Post Nova resource will be rendered like this.
 
 ## Requirements
 
-- `laravel/nova: ^2.9`
+- `php: >=7.1.0`
 - `spatie/laravel-translatable: ^4.0`
 
 ## Installation
