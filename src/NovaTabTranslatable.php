@@ -71,10 +71,12 @@ class NovaTabTranslatable extends Field
         collect($this->locales)
             ->crossJoin($this->originalFields)
             ->eachSpread(function (string $locale, Field $field) {
-                $translatedField = $this->createTranslatedField($field, $locale);
+                if($field->authorizedToSee(request())) {
+                    $translatedField = $this->createTranslatedField($field, $locale);
 
-                $this->data[] = $translatedField;
-                $this->translatedFieldsByLocale[$locale][] = $translatedField;
+                    $this->data[] = $translatedField;
+                    $this->translatedFieldsByLocale[$locale][] = $translatedField;
+                }
             });
     }
 
