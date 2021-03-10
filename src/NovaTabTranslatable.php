@@ -7,6 +7,7 @@ use Epartment\NovaDependencyContainer\NovaDependencyContainer;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Laravel\Nova\Fields\Field;
+use Laravel\Nova\Fields\KeyValue;
 use Laravel\Nova\Fields\Slug;
 use Laravel\Nova\Http\Requests\NovaRequest;
 
@@ -107,8 +108,12 @@ class NovaTabTranslatable extends Field
                 return $model->translations[$originalAttribute][$locale] ?? '';
             });
 
-        $translatedField->fillUsing(function ($request, $model, $attribute, $requestAttribute) use ($locale, $originalAttribute) {
-            $model->setTranslation($originalAttribute, $locale, $request->get($requestAttribute));
+        $translatedField->fillUsing(function ($request, $model, $attribute, $requestAttribute) use ($locale, $originalAttribute,$translatedField) {
+            $savedData = $request->get($requestAttribute);
+
+            if ($this->isJson($savedData)) $savedData = json_decode($savedData,true);
+
+            $model->setTranslation($originalAttribute, $locale, $savedData);
         });
 
         $translatedField = $this->compatibilityWithOtherPlugins($translatedField);
@@ -224,6 +229,12 @@ class NovaTabTranslatable extends Field
     public function getRules(NovaRequest $request)
     {
         return $this->getSituationalRulesSet($request);
+    }
+
+    private function isJson($string): bool
+    {
+        json_decode($string);
+        return (json_last_error() == JSON_ERROR_NONE);
     }
 
 }
