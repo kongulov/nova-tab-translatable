@@ -16,7 +16,6 @@
     ],
     "require": {
         "php": ">=7.1.0",
-        "laravel/nova": "^3.0",
         "spatie/laravel-translatable": "^4.0"
     },
     "autoload": {

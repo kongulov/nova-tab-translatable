@@ -4,6 +4,7 @@ namespace Kongulov\NovaTabTranslatable;
 
 use Drobee\NovaSluggable\SluggableText;
 use Epartment\NovaDependencyContainer\NovaDependencyContainer;
+use Illuminate\Contracts\Validation\Rule;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Laravel\Nova\Fields\Field;
@@ -71,10 +72,12 @@ class NovaTabTranslatable extends Field
         collect($this->locales)
             ->crossJoin($this->originalFields)
             ->eachSpread(function (string $locale, Field $field) {
-                $translatedField = $this->createTranslatedField($field, $locale);
+                if($field->authorizedToSee(request())) {
+                    $translatedField = $this->createTranslatedField($field, $locale);
 
-                $this->data[] = $translatedField;
-                $this->translatedFieldsByLocale[$locale][] = $translatedField;
+                    $this->data[] = $translatedField;
+                    $this->translatedFieldsByLocale[$locale][] = $translatedField;
+                }
             });
     }
 
@@ -121,12 +124,14 @@ class NovaTabTranslatable extends Field
         return $translatedField;
     }
 
-    public function setRules($translatedField){
+    public function setRules($translatedField) {
 
         $translatedField->creationRules = $this->setUnique($translatedField->creationRules, $translatedField->meta['locale']);
         $translatedField->updateRules = $this->setUnique($translatedField->updateRules, $translatedField->meta['locale']);
 
         foreach ($translatedField->rules as $key => &$rule) {
+            if ($rule instanceof Rule) continue;
+
             if (strpos($rule, 'required_lang') !== false){
                 $langs = explode(',', Str::after($rule,'required_lang:'));
 

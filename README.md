@@ -1,4 +1,8 @@
 # Making Nova Tab Translatable
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/kongulov/nova-tab-translatable?style=flat-square)](https://packagist.org/packages/kongulov/nova-tab-translatable)
+![Licence](https://img.shields.io/github/license/kongulov/nova-tab-translatable?style=flat-square)
+[![Total Downloads](https://poser.pugx.org/kongulov/nova-tab-translatable/downloads?format=flat-square)](https://packagist.org/packages/kongulov/nova-tab-translatable)
+
 
 This package contains a `NovaTabTranslatable` class you can use to make any Nova field type translatable with tabs.
 
@@ -32,7 +36,7 @@ That Post Nova resource will be rendered like this.
 
 ## Requirements
 
-- `laravel/nova: ^2.9`
+- `php: >=7.1.0`
 - `spatie/laravel-translatable: ^4.0`
 
 ## Installation
@@ -120,6 +124,22 @@ But if you want to make the field required in all languages, then use the larave
 NovaTabTranslatable::make([
     Text::make('Title')->rules('required'),
 ]),
+```
+
+* Replace field name
+```php
+NovaTabTranslatable::make([
+    Text::make('Title')->rules('required'),
+])->setTitle('Own Title'),
+```
+
+* If on the index and detail pages you want to turn off the tab and show it each as a row, use trait `TranslatableTabToRowTrait` in your resource
+```php
+class YourResource extends Resource
+{
+    use TranslatableTabToRowTrait;
+    ...
+}
 ```
 
 ## Credits
