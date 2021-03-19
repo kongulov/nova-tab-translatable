@@ -1,5 +1,5 @@
 <template>
-    <div id="nova-tab-translatable">
+    <div id="nova-tab-translatable" class="w-full">
         <div class="tab-items px-8">
             <span class="tab-item" v-for="lang in field.languages"
                   :class="{'active':selectedLang === lang, 'has-error':checkError(lang)}" @click="selectedLang = lang">
