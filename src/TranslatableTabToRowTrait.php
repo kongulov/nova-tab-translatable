@@ -18,8 +18,10 @@ trait TranslatableTabToRowTrait
      */
     public function availableFields(NovaRequest $request)
     {
+        $method = $this->fieldsMethod($request);
+
         // needs to be filtered once to resolve Panels
-        $fields = $this->filter($this->fields($request));
+        $fields = $this->filter($this->{$method}($request));
         $availableFields = [];
 
         foreach ($fields as $key => $field) {
@@ -27,7 +29,7 @@ trait TranslatableTabToRowTrait
                 $availableFields[] = $this->filterFieldForRequest($field, $request);
                 if($this->extractableRequest($request, $this->model())) {
                     if ($this->doesRouteRequireChildFields()) {
-                        $this->extractChildFields($field->originalFields, $key);
+                        $this->extractChildFields($field, $key);
                     }
                 }
             } else {
@@ -114,15 +116,16 @@ trait TranslatableTabToRowTrait
      * @param  [array] $childFields [meta fields]
      * @return void
      */
-    protected function extractChildFields($childFields, $key)
+    protected function extractChildFields($field, $key)
     {
-        foreach ($childFields as $childField) {
+        foreach ($field->originalFields as $childField) {
             if ($childField instanceof NovaTabTranslatable) {
                 $this->extractChildFields($childField->data, $key);
             } else {
                 if (array_search($childField->attribute, array_column($this->childFieldsArr, 'attribute')) === false) {
                     // @todo: we should not randomly apply rules to child-fields.
                     $childField = $this->applyRulesForChildFields($childField);
+                    if (isset($field->panel)) $childField->panel = $field->panel;
                     $this->childFieldsArr[$key][] = $childField;
                 }
             }
