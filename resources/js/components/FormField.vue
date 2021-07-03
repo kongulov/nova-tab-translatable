@@ -8,7 +8,7 @@
         </div>
         <div class="tab-contents">
             <div class="tab-content" v-for="(component, index) in field.fields"
-                 v-show="selectedLang === component.locale">
+                 v-show="selectedLang === component.locale && checkVisibility(component)">
                 <component
                     :key="index"
                     :class="{'remove-bottom-border ': (index + 1) % field.originalFieldsCount !== 0}"
@@ -44,12 +44,23 @@ export default {
     mounted() {
         this.selectedLang = this.field.languages[0] ? this.field.languages[0] : '';
     },
+    created(){
+        console.log(this.field.fields[0]);
+        console.log('resourceId: ' + this.resourceId);
+    },
     watch:{
         errors() {
             this.switchToErrorTab();
         }
     },
     methods: {
+        isCreatePage(){
+            return this.resourceId === undefined;
+        },
+        checkVisibility(component){
+            if (this.isCreatePage()) return component.showOnCreation;
+            else return component.showOnUpdate;
+        },
         setInitialValue() {
             this.value = this.field.value || ''
         },
