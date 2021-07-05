@@ -44,10 +44,6 @@ export default {
     mounted() {
         this.selectedLang = this.field.languages[0] ? this.field.languages[0] : '';
     },
-    created(){
-        console.log(this.field.fields[0]);
-        console.log('resourceId: ' + this.resourceId);
-    },
     watch:{
         errors() {
             this.switchToErrorTab();
