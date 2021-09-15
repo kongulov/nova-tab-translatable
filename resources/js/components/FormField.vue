@@ -2,13 +2,13 @@
     <div id="nova-tab-translatable" class="w-full">
         <div class="tab-items px-8">
             <span class="tab-item" v-for="lang in field.languages"
-                  :class="{'active':selectedLang === lang, 'has-error':checkError(lang)}" @click="selectedLang = lang">
+                  :class="{'active':selectedLang === lang, 'has-error':checkError(lang)}" @click="switchLanguage(lang)">
                 {{ lang }} <span class="text-danger text-sm">{{ field.requiredLocales[lang] ? '*' : '' }}</span>
             </span>
         </div>
         <div class="tab-contents">
             <div class="tab-content" v-for="(component, index) in field.fields"
-                 v-show="selectedLang === component.locale && checkVisibility(component)">
+                 v-show="selectedLang === component.locale">
                 <component
                     :key="index"
                     :class="{'remove-bottom-border ': (index + 1) % field.originalFieldsCount !== 0}"
@@ -42,21 +42,19 @@ export default {
         }
     },
     mounted() {
-        this.selectedLang = this.field.languages[0] ? this.field.languages[0] : '';
+        let lastSelectedLanguage;
+        if (lastSelectedLanguage = sessionStorage.getItem(this.sessionStoragePreviousLang())) {
+            this.selectedLang = lastSelectedLanguage;
+        } else {
+            this.selectedLang = this.field.languages[0] ? this.field.languages[0] : '';
+        }
     },
-    watch:{
+    watch: {
         errors() {
             this.switchToErrorTab();
         }
     },
     methods: {
-        isCreatePage(){
-            return this.resourceId === undefined;
-        },
-        checkVisibility(component){
-            if (this.isCreatePage()) return component.showOnCreation;
-            else return component.showOnUpdate;
-        },
         setInitialValue() {
             this.value = this.field.value || ''
         },
@@ -66,6 +64,10 @@ export default {
                     field.fill(formData)
                 }
             })
+        },
+        switchLanguage(lang) {
+            this.selectedLang = lang;
+            sessionStorage.setItem(this.sessionStoragePreviousLang(), this.selectedLang);
         },
         handleChange(value) {
             this.value = value
@@ -90,6 +92,9 @@ export default {
             }
 
             return false;
+        },
+        sessionStoragePreviousLang() {
+            return this.$options._componentTag + ':previous-language';
         }
     },
     computed: {},
