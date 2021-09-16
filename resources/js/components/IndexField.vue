@@ -2,7 +2,7 @@
     <div class="nova-tab-translatable-index w-full">
         <div class="tab-items px-8">
             <span class="tab-item" v-for="lang in field.languages"
-                  :class="{'active':selectedLang === lang}" @click="selectedLang = lang">
+                  :class="{'active':selectedLang === lang}" @click="switchLanguage(lang)">
                 {{ lang }}
             </span>
         </div>
@@ -16,20 +16,10 @@
 </template>
 
 <script>
+import IndexMixin from '../mixins/index'
+
 export default {
+    mixins: [IndexMixin],
     props: ['resourceName', 'field'],
-    data() {
-        return {
-            selectedLang: '',
-        }
-    },
-    methods: {
-      componentName(component){
-          return component.name.replace(' ['+component.locale+']', '');
-      }
-    },
-    mounted() {
-        this.selectedLang = this.field.languages[0] ? this.field.languages[0] : '';
-    },
 }
 </script>

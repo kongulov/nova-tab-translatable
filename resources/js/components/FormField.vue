@@ -1,9 +1,13 @@
 <template>
     <div id="nova-tab-translatable" class="w-full">
         <div class="tab-items px-8">
-            <span class="tab-item" v-for="lang in field.languages"
-                  :class="{'active':selectedLang === lang, 'has-error':checkError(lang)}" @click="selectedLang = lang">
-                {{ lang }} <span class="text-danger text-sm">{{ field.requiredLocales[lang] ? '*' : '' }}</span>
+            <span class="tab-item"
+                  v-for="lang in field.languages"
+                  :class="{'active':selectedLang === lang, 'has-error':checkError(lang)}"
+                  @click="switchLanguage(lang)"
+            >
+                {{ lang }}
+                <span class="text-danger text-sm">{{ field.requiredLocales[lang] ? '*' : '' }}</span>
             </span>
         </div>
         <div class="tab-contents">
@@ -29,21 +33,14 @@
 </template>
 
 <script>
-import {FormField, HandlesValidationErrors, InteractsWithResourceInformation} from 'laravel-nova'
+import {FormField, HandlesValidationErrors, InteractsWithResourceInformation} from 'laravel-nova';
+import IndexMixin from '../mixins/index'
 
 export default {
-    mixins: [FormField, HandlesValidationErrors, InteractsWithResourceInformation],
+    mixins: [FormField, HandlesValidationErrors, InteractsWithResourceInformation, IndexMixin],
 
     props: ['field', 'resourceId', 'resourceName', 'errors', 'viaResource', 'viaRelationship', 'viaResourceId'],
 
-    data() {
-        return {
-            selectedLang: '',
-        }
-    },
-    mounted() {
-        this.selectedLang = this.field.languages[0] ? this.field.languages[0] : '';
-    },
     watch:{
         errors() {
             this.switchToErrorTab();

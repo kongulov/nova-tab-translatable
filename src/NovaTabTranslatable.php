@@ -21,11 +21,11 @@ class NovaTabTranslatable extends Field
     public $component = 'nova-tab-translatable';
 
     public $name = 'Tab translatable';
-    public $data = [];
-    public $locales = [];
-    public $requiredLocales = [];
+    private $data = [];
+    private $locales = [];
+    private $requiredLocales = [];
+    private $translatedFieldsByLocale = [];
     public $originalFields = [];
-    public $translatedFieldsByLocale = [];
 
     /** @var \Closure|null */
     protected static $displayLocalizedNameByDefaultUsingCallback;
@@ -53,17 +53,26 @@ class NovaTabTranslatable extends Field
         $this->createTranslatableFields();
 
         $this->withMeta([
-            'languages' => $this->locales,
-            'fields' => $this->data,
-            'originalFieldsCount' => count($fields),
-            'requiredLocales' => $this->requiredLocales,
+            'saveLastSelectedLang'  => false,
+            'languages'             => $this->locales,
+            'fields'                => $this->data,
+            'originalFieldsCount'   => count($fields),
+            'requiredLocales'       => $this->requiredLocales,
         ]);
     }
 
-    public function setTitle($title){
+    public function setTitle($title): self
+    {
         $this->name = $title;
 
         return $this;
+    }
+
+    public function saveLastSelectedLang(): self
+    {
+        return $this->withMeta([
+            'saveLastSelectedLang'  => true,
+        ]);
     }
 
     protected function createTranslatableFields()
@@ -123,7 +132,7 @@ class NovaTabTranslatable extends Field
         return $translatedField;
     }
 
-    public function setRules($translatedField) {
+    protected function setRules($translatedField) {
 
         $translatedField->creationRules = $this->setUnique($translatedField->creationRules, $translatedField->meta['locale']);
         $translatedField->updateRules = $this->setUnique($translatedField->updateRules, $translatedField->meta['locale']);
@@ -152,7 +161,7 @@ class NovaTabTranslatable extends Field
         return $translatedField;
     }
 
-    public function setUnique($rules, $locale){
+    protected function setUnique($rules, $locale){
         foreach ($rules as &$rule) {
             if (strpos($rule, 'unique:') !== false){
                 $before = Str::before($rule,'unique:');
@@ -240,7 +249,6 @@ class NovaTabTranslatable extends Field
         json_decode($string);
         return (json_last_error() == JSON_ERROR_NONE);
     }
-
 }
 
 
