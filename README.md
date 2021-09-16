@@ -133,6 +133,13 @@ NovaTabTranslatable::make([
 ])->setTitle('Own Title'),
 ```
 
+* If you want to save the tab in the last selected language, call the `saveLastSelectedLang()` method
+```php
+NovaTabTranslatable::make([
+    Text::make('Title'),
+])->saveLastSelectedLang(),
+```
+
 * If on the index and detail pages you want to turn off the tab and show it each as a row, use trait `TranslatableTabToRowTrait` in your resource
 ```php
 class YourResource extends Resource
