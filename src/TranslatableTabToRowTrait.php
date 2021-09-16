@@ -125,7 +125,7 @@ trait TranslatableTabToRowTrait
                 if (array_search($childField->attribute, array_column($this->childFieldsArr, 'attribute')) === false) {
                     // @todo: we should not randomly apply rules to child-fields.
                     $childField = $this->applyRulesForChildFields($childField);
-                    if (isset($field->panel)) $childField->panel = $field->panel;
+                    if (! $field instanceof NovaTabTranslatable && isset($field->panel)) $childField->panel = $field->panel;
                     $this->childFieldsArr[$key][] = $childField;
                 }
             }
