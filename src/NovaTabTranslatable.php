@@ -21,7 +21,7 @@ class NovaTabTranslatable extends Field
     public $component = 'nova-tab-translatable';
 
     public $name = 'Tab translatable';
-    private $data = [];
+    public $data = [];
     private $locales = [];
     private $requiredLocales = [];
     private $translatedFieldsByLocale = [];

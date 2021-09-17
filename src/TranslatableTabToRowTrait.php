@@ -2,6 +2,7 @@
 
 namespace Kongulov\NovaTabTranslatable;
 
+use Eminiarts\Tabs\Tabs;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
@@ -25,15 +26,14 @@ trait TranslatableTabToRowTrait
         $availableFields = [];
 
         foreach ($fields as $key => $field) {
+            $availableFields[] = $this->filterFieldForRequest($field, $request);
+
             if ($field instanceof NovaTabTranslatable) {
-                $availableFields[] = $this->filterFieldForRequest($field, $request);
                 if($this->extractableRequest($request, $this->model())) {
                     if ($this->doesRouteRequireChildFields()) {
                         $this->extractChildFields($field, $key);
                     }
                 }
-            } else {
-                $availableFields[] = $this->filterFieldForRequest($field, $request);
             }
         }
 
@@ -125,6 +125,14 @@ trait TranslatableTabToRowTrait
                 if (array_search($childField->attribute, array_column($this->childFieldsArr, 'attribute')) === false) {
                     // @todo: we should not randomly apply rules to child-fields.
                     $childField = $this->applyRulesForChildFields($childField);
+                    if (isset($field->meta['tabInfo'])){
+                        $childField->withMeta([
+                            'tab'       => $field->meta['tab'] ?? '',
+                            'tabSlug'   => $field->meta['tabSlug'] ?? '',
+                            'tabInfo'   => $field->meta['tabInfo'] ?? [],
+                        ]);
+                    }
+
                     if (isset($field->panel)) $childField->panel = $field->panel;
                     $this->childFieldsArr[$key][] = $childField;
                 }
