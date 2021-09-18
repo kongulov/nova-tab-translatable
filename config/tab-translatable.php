@@ -24,4 +24,9 @@ return [
         'code_field' => 'lang',
     ],
 
+    /*
+     * If you want to save the tab in the last selected language for the whole project, set this "true".
+     * But if you want to use in one place call the saveLastSelectedLang(true|false) method
+     */
+    'save_last_selected_lang' => false,
 ];

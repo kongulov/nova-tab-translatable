@@ -53,7 +53,7 @@ class NovaTabTranslatable extends Field
         $this->createTranslatableFields();
 
         $this->withMeta([
-            'saveLastSelectedLang'  => false,
+            'saveLastSelectedLang'  => $config['save_last_selected_lang'] ?? false,
             'languages'             => $this->locales,
             'fields'                => $this->data,
             'originalFieldsCount'   => count($fields),
@@ -68,10 +68,10 @@ class NovaTabTranslatable extends Field
         return $this;
     }
 
-    public function saveLastSelectedLang(): self
+    public function saveLastSelectedLang(bool $state = true): self
     {
         return $this->withMeta([
-            'saveLastSelectedLang'  => true,
+            'saveLastSelectedLang'  => $state,
         ]);
     }
 

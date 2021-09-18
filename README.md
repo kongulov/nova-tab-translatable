@@ -77,6 +77,12 @@ return [
         'model' => 'App\\Language',
         'code_field' => 'lang',
     ],
+
+    /*
+     * If you want to save the tab in the last selected language for the whole project, set this "true".
+     * But if you want to use in one place call the saveLastSelectedLang(true|false) method
+     */
+    'save_last_selected_lang' => false,
 ];
 ```
 
@@ -133,11 +139,11 @@ NovaTabTranslatable::make([
 ])->setTitle('Own Title'),
 ```
 
-* If you want to save the tab in the last selected language, call the `saveLastSelectedLang()` method
+* If you want to save the tab in the last selected language, call the `saveLastSelectedLang()` method or in the config replace `'save_last_selected_lang' => false` with `'save_last_selected_lang' => true`
 ```php
 NovaTabTranslatable::make([
     Text::make('Title'),
-])->saveLastSelectedLang(),
+])->saveLastSelectedLang(true|false),
 ```
 
 * If on the index and detail pages you want to turn off the tab and show it each as a row, use trait `TranslatableTabToRowTrait` in your resource
