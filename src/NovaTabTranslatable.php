@@ -97,6 +97,7 @@ class NovaTabTranslatable extends Field
 
         $translatedField->attribute = 'translations';
         $translatedField->withMeta([
+            'defaultValue' => $translatedField->defaultCallback,
             'locale' => $locale,
             'showOnIndex' => $translatedField->showOnIndex,
             'showOnDetail' => $translatedField->showOnDetail,

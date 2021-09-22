@@ -20,7 +20,7 @@
                     :resource-name="resourceName"
                     :resource-id="resourceId"
                     :resource="resource"
-                    :field="component"
+                    :field="fieldDefaultValue(component)"
                     :errors="errors"
                     :via-resource="viaResource"
                     :via-resource-id="viaResourceId"
@@ -47,6 +47,11 @@ export default {
         }
     },
     methods: {
+        fieldDefaultValue(field) {
+            if (field.value === '' && field.defaultValue !== '') field.value = field.defaultValue;
+
+            return field;
+        },
         isCreatePage(){
             return this.resourceId === undefined;
         },
