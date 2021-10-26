@@ -7,9 +7,22 @@
             </span>
         </div>
         <div class="tab-contents">
-            <div class="tab-content" v-for="(component, index) in field.fields"
+            <div class="tab-content" style="display: flex" v-for="(component, index) in field.fields"
                  v-show="selectedLang === component.locale && component.showOnIndex">
-                {{ componentName(component) }}: {{ component.value }}
+                <span style="margin-right: 5px;">{{ componentName(component) }}:</span>
+                <component
+                    :key="index"
+                    :class="{'remove-bottom-border ': (index + 1) % field.originalFieldsCount !== 0}"
+                    :is="resolveComponentName(component)"
+                    :resource-name="resourceName"
+                    :resource-id="resourceId"
+                    :resource="resource"
+                    :field="fieldDefaultValue(component)"
+                    :errors="errors"
+                    :via-resource="viaResource"
+                    :via-resource-id="viaResourceId"
+                    :via-relationship="viaRelationship"
+                />
             </div>
         </div>
     </div>
@@ -20,6 +33,16 @@ import IndexMixin from '../mixins/index'
 
 export default {
     mixins: [IndexMixin],
-    props: ['resourceName', 'field'],
+    props: ['field', 'resourceId', 'resourceName', 'errors', 'viaResource', 'viaRelationship', 'viaResourceId'],
+    methods:{
+        fieldDefaultValue(field) {
+            if (field.value === '' && field.defaultValue !== '') field.value = field.defaultValue;
+
+            return field;
+        },
+        resolveComponentName(field) {
+            return field.prefixComponent ? 'index-' + field.component : field.component
+        },
+    }
 }
 </script>

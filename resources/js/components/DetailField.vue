@@ -7,12 +7,20 @@
             </span>
         </div>
         <div class="tab-contents">
-            <div class="tab-content table">
-                <div class="table-row" v-for="(component, index) in field.fields" v-show="selectedLang === component.locale && component.showOnDetail">
-                    <div class="table-cell p-2">{{ componentName(component) }}</div>
-                    <div class="table-cell p-2">&nbsp;:&nbsp;</div>
-                    <div class="table-cell p-2" v-html="component.value"></div>
-                </div>
+            <div  v-for="(component, index) in field.fields" v-show="selectedLang === component.locale && component.showOnDetail">
+                <component
+                    :key="index"
+                    :class="{'remove-bottom-border ': (index + 1) % field.originalFieldsCount !== 0}"
+                    :is="resolveComponentName(component)"
+                    :resource-name="resourceName"
+                    :resource-id="resourceId"
+                    :resource="resource"
+                    :field="fieldDefaultValue(component)"
+                    :errors="errors"
+                    :via-resource="viaResource"
+                    :via-resource-id="viaResourceId"
+                    :via-relationship="viaRelationship"
+                />
             </div>
         </div>
     </div>
@@ -23,6 +31,16 @@ import IndexMixin from '../mixins/index'
 
 export default {
     mixins: [IndexMixin],
-    props: ['resource', 'resourceName', 'resourceId', 'field'],
+    props: ['field', 'resource', 'resourceId', 'resourceName', 'errors', 'viaResource', 'viaRelationship', 'viaResourceId'],
+    methods:{
+        fieldDefaultValue(field) {
+            if (field.value === '' && field.defaultValue !== '') field.value = field.defaultValue;
+
+            return field;
+        },
+        resolveComponentName(field) {
+            return field.prefixComponent ? 'detail-' + field.component : field.component
+        },
+    }
 }
 </script>

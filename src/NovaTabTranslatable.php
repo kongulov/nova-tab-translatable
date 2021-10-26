@@ -6,8 +6,10 @@ use Drobee\NovaSluggable\SluggableText;
 use Epartment\NovaDependencyContainer\NovaDependencyContainer;
 use Illuminate\Contracts\Validation\Rule;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Laravel\Nova\Fields\Field;
+use Laravel\Nova\Fields\Image;
 use Laravel\Nova\Fields\Slug;
 use Laravel\Nova\Http\Requests\NovaRequest;
 
@@ -120,13 +122,39 @@ class NovaTabTranslatable extends Field
                 return $model->translations[$originalAttribute][$locale] ?? '';
             });
 
-        $translatedField->fillUsing(function ($request, $model, $attribute, $requestAttribute) use ($locale, $originalAttribute,$translatedField) {
-            $savedData = $request->get($requestAttribute);
+        if ($originalField instanceof Image){
+            $translatedField
+                ->store(function ($request, $model, $attribute, $requestAttribute) use ($locale, $originalAttribute, $translatedField) {
+                    $file = $request->file($requestAttribute)->store($translatedField->getStorageDir(), $translatedField->getStorageDisk());
 
-            if ($this->isJson($savedData)) $savedData = json_decode($savedData,true);
+                    $model->setTranslation($originalAttribute, $locale, $file);
 
-            $model->setTranslation($originalAttribute, $locale, $savedData);
-        });
+                    return true;
+                })
+                ->thumbnail(function($value) use ($translatedField){
+                    $disk = $translatedField->getStorageDisk();
+
+                    if (!Storage::disk($disk)->exists($value)) return false;
+
+                    return Storage::disk($disk)->url($value);
+                })
+                ->preview(function($value) use ($translatedField){
+                    $disk = $translatedField->getStorageDisk();
+
+                    if (!Storage::disk($disk)->exists($value)) return false;
+
+                    return Storage::disk($disk)->url($value);
+                });
+        }
+        else{
+            $translatedField->fillUsing(function ($request, $model, $attribute, $requestAttribute) use ($locale, $originalAttribute,$translatedField) {
+                $savedData = $request->get($requestAttribute);
+
+                if ($this->isJson($savedData)) $savedData = json_decode($savedData,true);
+
+                $model->setTranslation($originalAttribute, $locale, $savedData);
+            });
+        }
 
         $translatedField = $this->compatibilityWithOtherPlugins($translatedField);
 

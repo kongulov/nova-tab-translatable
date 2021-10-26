@@ -2,7 +2,9 @@
 
 namespace Kongulov\NovaTabTranslatable;
 
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Kongulov\NovaTabTranslatable\Http\Middleware\Authorize;
 use Laravel\Nova\Events\ServingNova;
 use Laravel\Nova\Nova;
 
@@ -20,9 +22,27 @@ class FieldServiceProvider extends ServiceProvider
             Nova::style('nova-tab-translatable', __DIR__.'/../dist/css/field.css');
         });
 
+        $this->app->booted(function () {
+            $this->routes();
+        });
+
         $this->publishes([
             __DIR__ . '/../config/tab-translatable.php' => config_path('tab-translatable.php'),
         ], 'tab-translatable-config');
+    }
+
+    protected function routes()
+    {
+        if ($this->app->routesAreCached()) {
+            return;
+        }
+
+
+
+        Route::middleware(['nova'])
+            ->prefix('nova-api/kongulov/nova-tab-translatable')
+            ->namespace('Kongulov\NovaTabTranslatable\Http\Controllers')
+            ->group(__DIR__.'/../routes/api.php');
     }
 
     /**
