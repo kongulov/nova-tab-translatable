@@ -7,6 +7,13 @@ Nova.booting((Vue, router, store) => {
 
     const BaseFormFileField = Vue.options.components["form-file-field"];
     const CustomFormFileField = BaseFormFileField.extend({
+        props: [
+            'resourceId',
+            'relatedResourceName',
+            'relatedResourceId',
+            'viaRelationship',
+            'dataDefault',
+        ],
         methods: {
             async removeFile() {
                 this.uploadErrors = new Errors()
@@ -20,14 +27,21 @@ Nova.booting((Vue, router, store) => {
                 } = this
                 const attribute = this.field.attribute
 
-
-
-                const uri =
+                var uri =
                     this.viaRelationship &&
                     this.relatedResourceName &&
                     this.relatedResourceId
                         ? `/nova-api/kongulov/nova-tab-translatable/${resourceName}/${resourceId}/${relatedResourceName}/${relatedResourceId}/field/${attribute}?viaRelationship=${viaRelationship}`
                         : `/nova-api/kongulov/nova-tab-translatable/${resourceName}/${resourceId}/field/${attribute}`
+
+                if (!this.dataDefault){
+                    uri =
+                        this.viaRelationship &&
+                        this.relatedResourceName &&
+                        this.relatedResourceId
+                            ? `/nova-api/${resourceName}/${resourceId}/${relatedResourceName}/${relatedResourceId}/field/${attribute}?viaRelationship=${viaRelationship}`
+                            : `/nova-api/${resourceName}/${resourceId}/field/${attribute}`
+                }
 
                 try {
                     await Nova.request().delete(uri)
@@ -49,13 +63,19 @@ Nova.booting((Vue, router, store) => {
 
     const BaseDetailFileField = Vue.options.components["detail-file-field"];
     const CustomDetailFileField = BaseDetailFileField.extend({
+        props: ['resource', 'resourceName', 'resourceId', 'field', 'dataDefault'],
         methods: {
             download() {
                 const { resourceName, resourceId } = this
                 const attribute = this.field.attribute
 
                 let link = document.createElement('a')
+
                 link.href = `/nova-api/kongulov/nova-tab-translatable/${resourceName}/${resourceId}/download/${attribute}`
+                if (!this.dataDefault) {
+                    link.href = `/nova-api/${resourceName}/${resourceId}/download/${attribute}`
+                }
+
                 link.download = 'download'
                 document.body.appendChild(link)
                 link.click()

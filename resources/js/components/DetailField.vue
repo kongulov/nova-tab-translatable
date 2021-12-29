@@ -10,6 +10,7 @@
             <div  v-for="(component, index) in field.fields" v-show="selectedLang === component.locale && component.showOnDetail">
                 <component
                     :key="index"
+                    :data-default="true"
                     :class="{'remove-bottom-border ': (index + 1) % field.originalFieldsCount !== 0}"
                     :is="resolveComponentName(component)"
                     :resource-name="resourceName"

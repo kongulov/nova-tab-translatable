@@ -51,7 +51,7 @@ class FieldDownloadController extends Controller
 
         if (!Storage::disk($disk)->exists($value)) abort(404);
 
-        $path = Storage::disk($disk)->get($value);
+        $path = Storage::disk($disk)->path($value);
 
         return response()->download($path);
     }
