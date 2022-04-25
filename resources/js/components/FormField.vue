@@ -15,7 +15,6 @@
                  v-show="selectedLang === component.locale && checkVisibility(component)">
                 <component
                     :key="index"
-                    :data-default="true"
                     :class="{'remove-bottom-border ': (index + 1) % field.originalFieldsCount !== 0}"
                     :is="resolveComponentName(component)"
                     :resource-name="resourceName"
@@ -34,11 +33,11 @@
 </template>
 
 <script>
-import {FormField, HandlesValidationErrors, InteractsWithResourceInformation} from 'laravel-nova';
+import {FormField, HandlesValidationErrors} from 'laravel-nova';
 import IndexMixin from '../mixins/index'
 
 export default {
-    mixins: [FormField, HandlesValidationErrors, InteractsWithResourceInformation, IndexMixin],
+    mixins: [FormField, HandlesValidationErrors, IndexMixin],
 
     props: ['field', 'resourceId', 'resourceName', 'errors', 'viaResource', 'viaRelationship', 'viaResourceId'],
 

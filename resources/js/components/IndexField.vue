@@ -2,7 +2,7 @@
     <div class="nova-tab-translatable-index w-full">
         <div class="tab-items px-8">
             <span class="tab-item" v-for="lang in field.languages"
-                  :class="{'active':selectedLang === lang}" @click="switchLanguage(lang)">
+                  :class="{'active':selectedLang === lang}" @click.stop="switchLanguage(lang)">
                 {{ lang }}
             </span>
         </div>

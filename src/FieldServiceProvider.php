@@ -37,10 +37,7 @@ class FieldServiceProvider extends ServiceProvider
             return;
         }
 
-
-
         Route::middleware(['nova'])
-            ->prefix('nova-api/kongulov/nova-tab-translatable')
             ->namespace('Kongulov\NovaTabTranslatable\Http\Controllers')
             ->group(__DIR__.'/../routes/api.php');
     }

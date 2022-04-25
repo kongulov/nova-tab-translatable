@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Laravel\Nova\Fields\Field;
+use Laravel\Nova\Fields\File;
 use Laravel\Nova\Fields\Image;
 use Laravel\Nova\Fields\Slug;
 use Laravel\Nova\Http\Requests\NovaRequest;
@@ -122,7 +123,7 @@ class NovaTabTranslatable extends Field
                 return $model->translations[$originalAttribute][$locale] ?? '';
             });
 
-        if ($originalField instanceof Image){
+        if ($originalField instanceof Image || $originalField instanceof File){
             $translatedField
                 ->store(function ($request, $model, $attribute, $requestAttribute) use ($locale, $originalAttribute, $translatedField) {
                     $file = $request->file($requestAttribute)->store($translatedField->getStorageDir(), $translatedField->getStorageDisk());
