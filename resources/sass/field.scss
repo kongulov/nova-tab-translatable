@@ -68,3 +68,22 @@
         padding: 6px 0;
     }
 }
+
+
+html.dark {
+    #nova-tab-translatable {
+        .tab-items {
+            padding: 1rem 1.5rem 0;
+            border-color: #344155;
+
+            .tab-item {
+                &.active {
+                    color: #94a3b8;
+                    background-color: #1e293b;
+                    border-color: #344155 #344155 #1e293b;
+                }
+            }
+        }
+    }
+}
+
