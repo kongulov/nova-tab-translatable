@@ -71,9 +71,9 @@
 
 
 html.dark {
-    #nova-tab-translatable {
+    #nova-tab-translatable,
+    .nova-tab-translatable-index {
         .tab-items {
-            padding: 1rem 1.5rem 0;
             border-color: #344155;
 
             .tab-item {
