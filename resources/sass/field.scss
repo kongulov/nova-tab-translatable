@@ -1,13 +1,21 @@
 #nova-tab-translatable {
+    &.details{
+        margin-top: 8px;
+    }
+    &:not(.details) {
+        border-bottom: 1px solid #eef1f4;
+    }
     .tab-items {
         display: flex;
         border-bottom: 1px solid #eef1f4;
-        margin-top: 1rem;
-        padding-top: 1rem;
+        margin-top: -1px;
+        margin-bottom: -1px;
+        padding: 1rem 1.5rem 0;
+        background-color: #eef1f4;
 
         .tab-item {
             display: block;
-            color: #4099de;
+            color: #7c858e;
             text-decoration: none;
             background-color: transparent;
             padding: .5rem 1rem;
@@ -17,23 +25,62 @@
             border-top-right-radius: .25rem;
             cursor: pointer;
             text-transform: uppercase;
+            font-weight: bold;
 
             &.active {
-                color: #7c858e;
+                color: #4099de;
                 background-color: #fff;
                 border-color: #eef1f4 #eef1f4 #fff;
                 pointer-events: none;
             }
 
             &.has-error{
-                color: #e74444;
+                color: #ef4444;
+            }
+
+            .text-danger{
+                color: #ef4444;
+            }
+        }
+    }
+}
+
+[data-testid="preview-resource-modal"],
+[dusk$="-detail-component"] {
+    #nova-tab-translatable {
+        .tab-items {
+            margin: 0 -24px -1px !important;
+        }
+    }
+}
+
+[data-testid="preview-resource-modal"] {
+    #nova-tab-translatable {
+        .tab-items {
+            margin: 0 -32px -1px !important;
+            border-radius: 0;
+        }
+    }
+}
+
+.tab-group {
+    .tab-card {
+        .tab {
+            #nova-tab-translatable {
+                .tab-items {
+                    margin-top: -1rem !important;
+                    border-radius: 0;
+
+                    .tab-item {
+                        flex: inherit;
+                    }
+                }
             }
         }
     }
 }
 
 .nova-tab-translatable-index{
-
     .tab-items {
         display: flex;
         border-bottom: 1px solid #eef1f4;
@@ -69,9 +116,18 @@
     }
 }
 
-
 html.dark {
     #nova-tab-translatable,
+    .nova-tab-translatable-index,{
+        .tab-items {
+            .tab-item {
+                &.active {
+                    background-color: #1e293b;
+                    border-color: #344155 #344155 #1e293b;
+                }
+            }
+        }
+    }
     .nova-tab-translatable-index {
         .tab-items {
             border-color: #344155;
@@ -79,8 +135,27 @@ html.dark {
             .tab-item {
                 &.active {
                     color: #94a3b8;
-                    background-color: #1e293b;
-                    border-color: #344155 #344155 #1e293b;
+                }
+            }
+        }
+    }
+
+    #nova-tab-translatable{
+        border-color: #344155;
+
+        .tab-items {
+            background-color: #344155;
+            border: 0;
+
+            .tab-item {
+                color: #8997ac;
+
+                &.active {
+                    color: #4099de;
+                }
+
+                &.has-error{
+                    color: #ef4444;
                 }
             }
         }
