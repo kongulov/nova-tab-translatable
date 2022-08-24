@@ -6,6 +6,7 @@ use Drobee\NovaSluggable\SluggableText;
 use Epartment\NovaDependencyContainer\NovaDependencyContainer;
 use Illuminate\Contracts\Validation\Rule;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Laravel\Nova\Fields\Field;
@@ -98,7 +99,6 @@ class NovaTabTranslatable extends Field
 
         $originalAttribute = $translatedField->attribute;
 
-        $translatedField->attribute = 'translations';
         $translatedField->withMeta([
             'defaultValue' => $translatedField->defaultCallback,
             'locale' => $locale,
@@ -115,11 +115,11 @@ class NovaTabTranslatable extends Field
             ? ($this->displayLocalizedNameUsingCallback)($translatedField, $locale)
             : $translatedField->name;
 
+        $translatedField->attribute = 'translations_' . $originalAttribute . '_' . $locale;
+        $translatedField->panel = $this->panel;
+
         $translatedField
             ->resolveUsing(function ($value, Model $model) use ($translatedField, $locale, $originalAttribute) {
-                $translatedField->attribute = 'translations_' . $originalAttribute . '_' . $locale;
-                $translatedField->panel = $this->panel;
-
                 return $model->translations[$originalAttribute][$locale] ?? '';
             });
 
@@ -148,8 +148,16 @@ class NovaTabTranslatable extends Field
                 });
         }
         else{
-            $translatedField->fillUsing(function ($request, $model, $attribute, $requestAttribute) use ($locale, $originalAttribute,$translatedField) {
+            $translatedField->fillUsing(function (Request $request, $model, $attribute, $requestAttribute) use ($locale, $originalAttribute, $translatedField) {
                 $savedData = $request->get($requestAttribute);
+                if (!isset($savedData)) {
+                    foreach ($request->all() as $key => $value) {
+                        if (!is_array($value)) continue;
+                        if (!isset($request->get($key)[$requestAttribute])) continue;
+
+                        $savedData = $request->get($key)[$requestAttribute];
+                    }
+                }
 
                 if ($this->isJson($savedData)) $savedData = json_decode($savedData,true);
 
