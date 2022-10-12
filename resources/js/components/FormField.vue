@@ -7,7 +7,7 @@
                   @click="switchLanguage(lang)"
             >
                 {{ lang }}
-                <span class="text-danger text-sm">{{ field.requiredLocales[lang] ? '*' : '' }}</span>
+                <span class="text-danger text-sm">{{ field.requiredLocales[lang] !== undefined && field.requiredLocales[lang] == true ? '*' : '' }}</span>
             </span>
         </div>
         <div class="tab-contents">
