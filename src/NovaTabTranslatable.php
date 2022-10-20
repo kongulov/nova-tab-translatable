@@ -44,7 +44,7 @@ class NovaTabTranslatable extends Field
         parent::__construct($this->name);
         $config = config('tab-translatable');
         if($config['source'] == 'database')
-            $this->locales = $config['database']['model']::pluck($config['database']['code_field'])->toArray();
+            $this->locales = $config['database']['model']::orderByRaw($config['database']['order_column'] ?? 'id')->pluck($config['database']['code_field'])->toArray();
         else
             $this->locales = $config['locales'];
 
@@ -288,7 +288,3 @@ class NovaTabTranslatable extends Field
         return (json_last_error() == JSON_ERROR_NONE);
     }
 }
-
-
-
-
