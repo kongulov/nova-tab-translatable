@@ -22,6 +22,7 @@ return [
     'database' => [
         'model' => 'App\\Language',
         'code_field' => 'lang',
+        'order_column' => 'id asc'
     ],
 
     /*
