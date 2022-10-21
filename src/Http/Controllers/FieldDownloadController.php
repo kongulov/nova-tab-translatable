@@ -28,7 +28,7 @@ class FieldDownloadController extends Controller
         $fieldNameArray = array_slice($explode, 1, -1);
         $fieldName = implode('_', $fieldNameArray);
 
-        if (!in_array($fieldName, $resource->translatable)) { // not translatable file
+        if (($resource->translatable === null && $fieldName === '') || !in_array($fieldName, $resource->translatable)){ // not translatable file
             $controller = new \Laravel\Nova\Http\Controllers\FieldDownloadController();
 
             return $controller->show($request);

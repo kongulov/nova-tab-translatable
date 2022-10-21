@@ -23,7 +23,7 @@ class FieldDestroyController extends Controller
         $fieldNameArray = array_slice($explode, 1, -1);
         $fieldName = implode('_', $fieldNameArray);
 
-        if (!in_array($fieldName, $resource->translatable)){
+        if (($resource->translatable === null && $fieldName === '') || !in_array($fieldName, $resource->translatable)){ // not translatable file
             $controller = new \Laravel\Nova\Http\Controllers\FieldDestroyController();
 
             return $controller->handle($request);
