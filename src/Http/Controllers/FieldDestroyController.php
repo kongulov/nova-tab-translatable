@@ -23,7 +23,11 @@ class FieldDestroyController extends Controller
         $fieldNameArray = array_slice($explode, 1, -1);
         $fieldName = implode('_', $fieldNameArray);
 
-        if (!in_array($fieldName, $resource->translatable)) abort(404);
+        if (!in_array($fieldName, $resource->translatable)){
+            $controller = new \Laravel\Nova\Http\Controllers\FieldDestroyController;
+
+            return $controller($request);
+        }
 
         $resource->authorizeToUpdate($request);
         $model = $resource->model();
