@@ -15,7 +15,7 @@ class FieldDownloadController extends Controller
      * Download the given field's contents.
      *
      * @param \Laravel\Nova\Http\Requests\NovaRequest $request
-     * @return BinaryFileResponse
+     * @return Response|BinaryFileResponse
      * @throws \Illuminate\Auth\Access\AuthorizationException
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
@@ -28,7 +28,11 @@ class FieldDownloadController extends Controller
         $fieldNameArray = array_slice($explode, 1, -1);
         $fieldName = implode('_', $fieldNameArray);
 
-        if (!in_array($fieldName, $resource->translatable)) abort(404);
+        if (!in_array($fieldName, $resource->translatable)) { // not translatable file
+            $controller = new \Laravel\Nova\Http\Controllers\FieldDownloadController();
+
+            return $controller->show($request);
+        }
 
         $resource->authorizeToView($request);
         $model = $resource->model();
