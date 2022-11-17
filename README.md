@@ -76,6 +76,8 @@ return [
     'database' => [
         'model' => 'App\\Language',
         'code_field' => 'lang',
+        'sort_by' => 'id',
+        'sort_direction' => 'asc'
     ],
 
     /*

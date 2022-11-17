@@ -42,7 +42,12 @@ class NovaTabTranslatable extends Field
         parent::__construct($this->name);
         $config = config('tab-translatable');
         if($config['source'] == 'database')
-            $this->locales = $config['database']['model']::pluck($config['database']['code_field'])->toArray();
+            $this->locales = $config['database']['model']::query()
+                ->when(isset($config['database']['sort_by']), function($query) use($config) {
+                    $query->orderBy($config['database']['sort_by'], $config['database']['sort_direction']);
+                })
+                ->pluck($config['database']['code_field'])
+                ->toArray();
         else
             $this->locales = $config['locales'];
 
