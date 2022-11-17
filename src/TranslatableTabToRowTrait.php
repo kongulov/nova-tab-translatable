@@ -15,7 +15,7 @@ trait TranslatableTabToRowTrait
 
     /**
      * @param NovaRequest $request
-     * @return FieldCollection|\Illuminate\Support\Collection
+     * @return FieldCollection|Collection
      */
     public function availableFields(NovaRequest $request)
     {
@@ -47,8 +47,8 @@ trait TranslatableTabToRowTrait
             }
         }
 
-
         $availableFields = new FieldCollection(array_values($this->filter($availableFields)));
+
         return $availableFields;
     }
 
@@ -99,7 +99,6 @@ trait TranslatableTabToRowTrait
      */
     protected function doesRouteRequireChildFields(): bool
     {
-
         return Str::endsWith(Route::currentRouteAction(), [
             /*'FieldDestroyController@handle',
             'ResourceUpdateController@handle',
@@ -107,8 +106,8 @@ trait TranslatableTabToRowTrait
             'AssociatableController@index',
             'MorphableController@index',*/
 
-            'ResourceIndexController@handle',
-            'ResourceShowController@handle',
+            'ResourceIndexController',
+            'ResourceShowController',
         ]);
     }
 
