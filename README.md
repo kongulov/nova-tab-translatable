@@ -74,8 +74,10 @@ return [
      * And choose the 'code_field' for example "en", "fr", "es"...
      */
     'database' => [
-        'model' => 'App\\Language',
+        'model' => 'App\\Models\\Language',
         'code_field' => 'lang',
+        'sort_by' => 'id',
+        'sort_direction' => 'asc'
     ],
 
     /*
