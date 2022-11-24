@@ -166,10 +166,11 @@ class NovaTabTranslatable extends Field
         return $translatedField;
     }
 
-    protected function setRules($translatedField) {
-
-        $translatedField->creationRules = $this->setUnique($translatedField->creationRules, $translatedField->meta['locale']);
-        $translatedField->updateRules = $this->setUnique($translatedField->updateRules, $translatedField->meta['locale']);
+    protected function setRules($translatedField)
+    {
+        $locale = $translatedField->meta['locale'];
+        $translatedField->creationRules = $this->setUnique($translatedField->creationRules, $locale);
+        $translatedField->updateRules = $this->setUnique($translatedField->updateRules, $locale);
 
         foreach ($translatedField->rules as $key => &$rule) {
             if ($rule instanceof Rule) continue;
@@ -177,11 +178,22 @@ class NovaTabTranslatable extends Field
             if (strpos($rule, 'required_lang') !== false){
                 $langs = explode(',', Str::after($rule,'required_lang:'));
 
-                if (in_array($translatedField->meta['locale'], $langs)){
+                if (in_array($locale, $langs)){
                     $rule = 'required';
                     $translatedField->requiredCallback = true;
                 }
                 else unset($translatedField->rules[$key]);
+            }
+            elseif (strpos($rule, 'required_with') !== false){
+                $fields = explode(',', Str::after($rule,'required_with:'));
+
+                $fields = array_map(function($item) use ($locale){
+                    return 'translations_'.$item.'_'.$locale;
+                }, $fields);
+                $fields = implode(',', $fields);
+
+                $rule = 'required_with:'.$fields;
+                $translatedField->requiredCallback = true;
             }
             elseif ($rule === 'required') {
                 $translatedField->requiredCallback = true;
@@ -189,7 +201,7 @@ class NovaTabTranslatable extends Field
         }
 
         if ($translatedField->requiredCallback){
-            $this->requiredLocales[$translatedField->meta['locale']] = $translatedField->requiredCallback;
+            $this->requiredLocales[$locale] = $translatedField->requiredCallback;
         }
 
         return $translatedField;
