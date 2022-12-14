@@ -3,6 +3,7 @@
         <div class="tab-items px-8">
             <span class="tab-item"
                   v-for="lang in field.languages"
+                  :data-langfor="lang"
                   :class="{'active':selectedLang === lang, 'has-error':checkError(lang)}"
                   @click="switchLanguage(lang)"
             >
@@ -12,6 +13,7 @@
         </div>
         <div class="tab-contents">
             <div class="tab-content" v-for="(component, index) in field.fields"
+                 :data-lang="component.locale"
                  v-show="selectedLang === component.locale && checkVisibility(component)">
                 <component
                     :key="index"
