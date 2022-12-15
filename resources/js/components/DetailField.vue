@@ -8,9 +8,9 @@
             </span>
         </div>
         <div class="tab-contents">
-            <div  v-for="(component, index) in field.fields"
-                  :data-lang="component.locale"
-                  v-show="selectedLang === component.locale && component.showOnDetail">
+            <div v-for="(component, index) in field.fields"
+                 v-show="selectedLang === component.locale && component.showOnDetail"
+                 :data-lang="component.locale">
                 <component
                     :key="index"
                     :class="{'remove-bottom-border ': (index + 1) % field.originalFieldsCount !== 0}"
