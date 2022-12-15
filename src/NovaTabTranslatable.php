@@ -67,6 +67,7 @@ class NovaTabTranslatable extends Field
             'fields'                => $this->data,
             'originalFieldsCount'   => count($fields),
             'requiredLocales'       => $this->requiredLocales,
+            'layout'                => $config['layout'] ?? 'tabs',
         ]);
     }
 

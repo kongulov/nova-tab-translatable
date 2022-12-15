@@ -1,13 +1,23 @@
 <template>
     <div id="nova-tab-translatable" class="details w-full">
-        <div class="tab-items px-8">
+        <select-nova-tab-translatable v-if="isSelect()"
+                                      :options="field.languages"
+                                      :value="selectedLang"
+                                      @input="switchLanguage">
+        </select-nova-tab-translatable>
+
+        <div v-if="!isSelect()" class="tab-items px-8">
             <span class="tab-item" v-for="lang in field.languages"
+                  :data-langfor="lang"
                   :class="{'active':selectedLang === lang}" @click="switchLanguage(lang)">
                 {{ lang }}
             </span>
         </div>
+
         <div class="tab-contents">
-            <div  v-for="(component, index) in field.fields" v-show="selectedLang === component.locale && component.showOnDetail">
+            <div v-for="(component, index) in field.fields"
+                 v-show="selectedLang === component.locale && component.showOnDetail"
+                 :data-lang="component.locale">
                 <component
                     :key="index"
                     :class="{'remove-bottom-border ': (index + 1) % field.originalFieldsCount !== 0}"

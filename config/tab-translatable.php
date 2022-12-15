@@ -31,4 +31,10 @@ return [
      * But if you want to use in one place call the saveLastSelectedLang(true|false) method
      */
     'save_last_selected_lang' => false,
+
+    /*
+     * If you have a large number of languages, we recommend changing the layout to "select"
+     * Available selection "tabs", "select". Default tabs
+     */
+    'layout' => 'tabs'
 ];

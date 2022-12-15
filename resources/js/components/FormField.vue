@@ -1,8 +1,16 @@
 <template>
     <div id="nova-tab-translatable" class="w-full">
-        <div class="tab-items px-8">
+        <select-nova-tab-translatable v-if="isSelect()"
+                        :options="field.languages"
+                        :classNames="{'has-error': checkError(selectedLang)}"
+                        :value="selectedLang"
+                        :input="switchLanguage">
+        </select-nova-tab-translatable>
+
+        <div v-if="!isSelect()" class="tab-items px-8">
             <span class="tab-item"
                   v-for="lang in field.languages"
+                  :data-langfor="lang"
                   :class="{'active':selectedLang === lang, 'has-error':checkError(lang)}"
                   @click="switchLanguage(lang)"
             >
@@ -10,9 +18,12 @@
                 <span class="text-danger text-sm">{{ field.requiredLocales[lang] !== undefined && field.requiredLocales[lang] == true ? '*' : '' }}</span>
             </span>
         </div>
+
         <div class="tab-contents">
-            <div class="tab-content" v-for="(component, index) in field.fields"
-                 v-show="selectedLang === component.locale && checkVisibility(component)">
+            <div class="tab-content"
+                 v-for="(component, index) in field.fields"
+                 v-show="selectedLang === component.locale && checkVisibility(component)"
+                 :data-lang="component.locale">
                 <component
                     :key="index"
                     :class="{'remove-bottom-border ': (index + 1) % field.originalFieldsCount !== 0}"
@@ -33,8 +44,8 @@
 </template>
 
 <script>
-import {FormField, HandlesValidationErrors} from 'laravel-nova';
 import IndexMixin from '../mixins/index'
+import {FormField, HandlesValidationErrors} from 'laravel-nova';
 
 export default {
     mixins: [FormField, HandlesValidationErrors, IndexMixin],
