@@ -1,4 +1,6 @@
 #nova-tab-translatable {
+    position: relative;
+
     &.details{
         margin-top: 8px;
     }
@@ -15,12 +17,13 @@
 
         .tab-item {
             display: block;
+            white-space: nowrap;
             color: #7c858e;
             text-decoration: none;
             background-color: transparent;
             padding: .5rem 1rem;
             margin-bottom: -1px;
-            border: 1px solid transparent;
+            border: 0;
             border-top-left-radius: .25rem;
             border-top-right-radius: .25rem;
             cursor: pointer;
@@ -89,11 +92,12 @@
 
         .tab-item {
             display: block;
+            white-space: nowrap;
             color: #4099de;
             text-decoration: none;
             background-color: transparent;
             margin-bottom: -1px;
-            border: 1px solid transparent;
+            border: 0;
             border-top-left-radius: .25rem;
             border-top-right-radius: .25rem;
             cursor: pointer;
@@ -113,6 +117,94 @@
     .tab-contents{
         font-size: 14px;
         padding: 6px 0;
+    }
+}
+
+#hamburger-menu{
+    padding: 0 0.5rem;
+
+    .hamburger-icon{
+        cursor: pointer;
+        position: relative;
+        width: 38px;
+        height: 38px;
+        display: inline-block;
+        padding: 5px;
+
+        &:after{
+            content: attr(data-hiddencount);
+            position: absolute;
+            right: -5px;
+            top: -5px;
+            background: #7c858e;
+            color: #ffffff;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font: 11px Arial, sans-serif;
+        }
+        &.fs14{
+            &:after {
+                font: 14px Arial, sans-serif;
+            }
+        }
+
+        span{
+            position: relative;
+            display: inline-block;
+            width: 28px;
+            height: 3px;
+            background: #7c858e;
+            margin: auto;
+
+            &:before{
+                content: '';
+                position: absolute;
+                left: 0;
+                top: -8px;
+                width: 28px;
+                height: 3px;
+                background: #7c858e;
+            }
+
+            &:after {
+                content: '';
+                position: absolute;
+                left: 0;
+                bottom: -8px;
+                width: 28px;
+                height: 3px;
+                background: #7c858e;
+            }
+        }
+    }
+
+    .hamburger-content{
+        position: absolute;
+        background-color: #eef1f4;
+        flex-direction: column;
+        z-index: 1;
+        right: 0;
+        max-height: 300px;
+        overflow: auto;
+        margin-top: unset;
+        margin-bottom: unset;
+        border: 0;
+
+        box-shadow: 0 0 #0000, 0 0 #0000, 0 0 #0000, 0 0 #0000, 0 1px 3px 0 rgba(0,0,0,.1), 0 1px 2px -1px rgba(0,0,0,.1);
+
+        .tab-item{
+            margin-bottom: unset;
+        }
+    }
+}
+
+.nova-tab-translatable-index{
+    #hamburger-menu{
+        position: relative;
     }
 }
 
@@ -158,6 +250,19 @@ html.dark {
                     color: #ef4444;
                 }
             }
+        }
+    }
+
+    #hamburger-menu{
+        .hamburger-icon{
+            &:after{
+                background: #1e293b;
+                color: unset;
+            }
+        }
+
+        .hamburger-content{
+            background-color: #344155;
         }
     }
 }
