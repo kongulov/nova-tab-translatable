@@ -12,6 +12,7 @@ use Laravel\Nova\Fields\Field;
 use Laravel\Nova\Fields\Image;
 use Laravel\Nova\Fields\Slug;
 use Laravel\Nova\Http\Requests\NovaRequest;
+use Throwable;
 
 class NovaTabTranslatable extends Field
 {
@@ -292,8 +293,12 @@ class NovaTabTranslatable extends Field
 
     private function isJson($string): bool
     {
-        json_decode($string);
-        return (json_last_error() == JSON_ERROR_NONE);
+        try {
+            json_decode($string);
+            return (json_last_error() == JSON_ERROR_NONE);
+        } catch (Throwable $th) {
+        }
+        return false;
     }
 }
 
