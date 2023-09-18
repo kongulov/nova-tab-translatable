@@ -46,6 +46,7 @@
                     :resource="resource"
                     :field="fieldDefaultValue(component)"
                     :errors="errors"
+                    :show-help-text="component.helpText !== null"
                     :via-resource="viaResource"
                     :via-resource-id="viaResourceId"
                     :via-relationship="viaRelationship"
