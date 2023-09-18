@@ -14,6 +14,7 @@ use Laravel\Nova\Fields\File;
 use Laravel\Nova\Fields\Image;
 use Laravel\Nova\Fields\Slug;
 use Laravel\Nova\Http\Requests\NovaRequest;
+use Throwable;
 
 class NovaTabTranslatable extends Field
 {
@@ -43,9 +44,9 @@ class NovaTabTranslatable extends Field
     {
         parent::__construct($this->name);
         $config = config('tab-translatable');
-        if($config['source'] == 'database')
+        if ($config['source'] == 'database')
             $this->locales = $config['database']['model']::query()
-                ->when(isset($config['database']['sort_by']), function($query) use($config) {
+                ->when(isset($config['database']['sort_by']), function ($query) use ($config) {
                     $query->orderBy($config['database']['sort_by'], $config['database']['sort_direction']);
                 })
                 ->pluck($config['database']['code_field'])
@@ -89,7 +90,7 @@ class NovaTabTranslatable extends Field
         collect($this->locales)
             ->crossJoin($this->originalFields)
             ->eachSpread(function (string $locale, Field $field) {
-                if($field->authorizedToSee(request())) {
+                if ($field->authorizedToSee(request())) {
                     $translatedField = $this->createTranslatedField($field, $locale);
 
                     $this->data[] = $translatedField;
@@ -128,7 +129,7 @@ class NovaTabTranslatable extends Field
                 return $model->translations[$originalAttribute][$locale] ?? '';
             });
 
-        if ($originalField instanceof Image || $originalField instanceof File){
+        if ($originalField instanceof Image || $originalField instanceof File) {
             $translatedField
                 ->store(function ($request, $model, $attribute, $requestAttribute) use ($locale, $originalAttribute, $translatedField) {
                     $file = $request->file($requestAttribute)->store($translatedField->getStorageDir(), $translatedField->getStorageDisk());
@@ -137,22 +138,21 @@ class NovaTabTranslatable extends Field
 
                     return true;
                 })
-                ->thumbnail(function($value) use ($translatedField){
+                ->thumbnail(function ($value) use ($translatedField) {
                     $disk = $translatedField->getStorageDisk();
 
                     if (!Storage::disk($disk)->exists($value)) return false;
 
                     return Storage::disk($disk)->url($value);
                 })
-                ->preview(function($value) use ($translatedField){
+                ->preview(function ($value) use ($translatedField) {
                     $disk = $translatedField->getStorageDisk();
 
                     if (!Storage::disk($disk)->exists($value)) return false;
 
                     return Storage::disk($disk)->url($value);
                 });
-        }
-        else{
+        } else {
             $translatedField->fillUsing(function (Request $request, $model, $attribute, $requestAttribute) use ($locale, $originalAttribute, $translatedField) {
                 $savedData = $request->get($requestAttribute);
                 if (!isset($savedData)) {
@@ -164,7 +164,7 @@ class NovaTabTranslatable extends Field
                     }
                 }
 
-                if ($this->isJson($savedData)) $savedData = json_decode($savedData,true);
+                if ($this->isJson($savedData)) $savedData = json_decode($savedData, true);
 
                 $model->setTranslation($originalAttribute, $locale, $savedData);
             });
@@ -184,48 +184,46 @@ class NovaTabTranslatable extends Field
         foreach ($translatedField->rules as $key => &$rule) {
             if ($rule instanceof Rule) continue;
 
-            if (strpos($rule, 'required_lang') !== false){
-                $langs = explode(',', Str::after($rule,'required_lang:'));
+            if (strpos($rule, 'required_lang') !== false) {
+                $langs = explode(',', Str::after($rule, 'required_lang:'));
 
-                if (in_array($locale, $langs)){
+                if (in_array($locale, $langs)) {
                     $rule = 'required';
                     $translatedField->requiredCallback = true;
-                }
-                else unset($translatedField->rules[$key]);
-            }
-            elseif (strpos($rule, 'required_with') !== false){
-                $fields = explode(',', Str::after($rule,'required_with:'));
+                } else unset($translatedField->rules[$key]);
+            } elseif (strpos($rule, 'required_with') !== false) {
+                $fields = explode(',', Str::after($rule, 'required_with:'));
 
-                $fields = array_map(function($item) use ($locale){
-                    return 'translations_'.$item.'_'.$locale;
+                $fields = array_map(function ($item) use ($locale) {
+                    return 'translations_' . $item . '_' . $locale;
                 }, $fields);
                 $fields = implode(',', $fields);
 
-                $rule = 'required_with:'.$fields;
+                $rule = 'required_with:' . $fields;
                 $translatedField->requiredCallback = true;
-            }
-            elseif ($rule === 'required') {
+            } elseif ($rule === 'required') {
                 $translatedField->requiredCallback = true;
             }
         }
 
-        if ($translatedField->requiredCallback){
+        if ($translatedField->requiredCallback) {
             $this->requiredLocales[$locale] = $translatedField->requiredCallback;
         }
 
         return $translatedField;
     }
 
-    protected function setUnique($rules, $locale){
+    protected function setUnique($rules, $locale)
+    {
         foreach ($rules as &$rule) {
-            if (strpos($rule, 'unique:') !== false){
-                $before = Str::before($rule,'unique:');
-                $after = Str::after($rule,'unique:');
+            if (strpos($rule, 'unique:') !== false) {
+                $before = Str::before($rule, 'unique:');
+                $after = Str::after($rule, 'unique:');
                 $explode = explode(',', $after);
 
-                $explode[1] = $explode[1].'->'.$locale;
+                $explode[1] = $explode[1] . '->' . $locale;
 
-                $rule = $before.'unique:'.implode(',', $explode);
+                $rule = $before . 'unique:' . implode(',', $explode);
             }
         }
 
@@ -236,11 +234,9 @@ class NovaTabTranslatable extends Field
     {
         if ($translatedField instanceof SluggableText) {
             $translatedField->slug($translatedField->meta['slug'] . ' [' . $translatedField->meta['locale'] . ']');
-        }
-        elseif ($translatedField instanceof Slug) {
-            $translatedField->from('translations_'.$translatedField->from . '_' . $translatedField->meta['locale']);
-        }
-        elseif ($translatedField instanceof NovaDependencyContainer) {
+        } elseif ($translatedField instanceof Slug) {
+            $translatedField->from('translations_' . $translatedField->from . '_' . $translatedField->meta['locale']);
+        } elseif ($translatedField instanceof NovaDependencyContainer) {
             // @todo
         }
 
@@ -301,11 +297,11 @@ class NovaTabTranslatable extends Field
 
     private function isJson($string): bool
     {
-        json_decode($string);
-        return (json_last_error() == JSON_ERROR_NONE);
+        try {
+            json_decode($string);
+            return (json_last_error() == JSON_ERROR_NONE);
+        } catch (Throwable $th) {
+        }
+        return false;
     }
 }
-
-
-
-
