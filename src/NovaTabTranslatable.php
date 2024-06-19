@@ -40,19 +40,20 @@ class NovaTabTranslatable extends Field
 
     public $panel;
 
-    public function __construct(array $fields = [])
+    public function __construct(array $fields = [], array $locales = [])
     {
         parent::__construct($this->name);
         $config = config('tab-translatable');
-        if ($config['source'] == 'database')
+        if ($config['source'] == 'database') {
             $this->locales = $config['database']['model']::query()
                 ->when(isset($config['database']['sort_by']), function ($query) use ($config) {
                     $query->orderBy($config['database']['sort_by'], $config['database']['sort_direction']);
                 })
                 ->pluck($config['database']['code_field'])
                 ->toArray();
-        else
-            $this->locales = $config['locales'];
+        } else {
+            $this->locales = count($locales) > 0 ? $locales : $config['locales'];
+        }
 
         $this->displayLocalizedNameUsingCallback = self::$displayLocalizedNameByDefaultUsingCallback ?? function (Field $field, string $locale) {
             return ucfirst($field->name) . " [{$locale}]";
