@@ -45,6 +45,7 @@ class FieldPreviewController extends Controller
                 return isset($field->attribute) &&
                     $field->attribute == $request->field;
             });
+            if($field) break;
         }
 
         if (!$field) abort(404);
