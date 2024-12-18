@@ -14,10 +14,13 @@ use Laravel\Nova\Fields\File;
 use Laravel\Nova\Fields\Image;
 use Laravel\Nova\Fields\Slug;
 use Laravel\Nova\Http\Requests\NovaRequest;
+use Laravel\Nova\Fields\SupportsDependentFields;
 use Throwable;
 
 class NovaTabTranslatable extends Field
 {
+    use SupportsDependentFields;
+    
     /**
      * The field's component.
      *
