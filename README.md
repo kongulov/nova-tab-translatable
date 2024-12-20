@@ -4,7 +4,7 @@
 [![Total Downloads](https://poser.pugx.org/kongulov/nova-tab-translatable/downloads?format=flat-square)](https://packagist.org/packages/kongulov/nova-tab-translatable)
 
 
-This package contains a `NovaTabTranslatable` class you can use to make any Nova field type translatable with tabs.
+This package contains a `NovaTabTranslatable` class you can use to make any Nova field type translatable with tabs. Use the master branch for Nova 5 and the 1.x branch for Nova 4.
 
 Imagine you have this `fields` method in a Post Nova resource:
 
