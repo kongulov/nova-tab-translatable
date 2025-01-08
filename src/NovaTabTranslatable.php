@@ -14,10 +14,13 @@ use Laravel\Nova\Fields\File;
 use Laravel\Nova\Fields\Image;
 use Laravel\Nova\Fields\Slug;
 use Laravel\Nova\Http\Requests\NovaRequest;
+use Laravel\Nova\Fields\SupportsDependentFields;
 use Throwable;
 
 class NovaTabTranslatable extends Field
 {
+    use SupportsDependentFields;
+    
     /**
      * The field's component.
      *
@@ -40,19 +43,20 @@ class NovaTabTranslatable extends Field
 
     public $panel;
 
-    public function __construct(array $fields = [])
+    public function __construct(array $fields = [], array $locales = [])
     {
         parent::__construct($this->name);
         $config = config('tab-translatable');
-        if ($config['source'] == 'database')
+        if ($config['source'] == 'database') {
             $this->locales = $config['database']['model']::query()
                 ->when(isset($config['database']['sort_by']), function ($query) use ($config) {
                     $query->orderBy($config['database']['sort_by'], $config['database']['sort_direction']);
                 })
                 ->pluck($config['database']['code_field'])
                 ->toArray();
-        else
-            $this->locales = $config['locales'];
+        } else {
+            $this->locales = count($locales) > 0 ? $locales : $config['locales'];
+        }
 
         $this->displayLocalizedNameUsingCallback = self::$displayLocalizedNameByDefaultUsingCallback ?? function (Field $field, string $locale) {
             return ucfirst($field->name) . " [{$locale}]";
@@ -85,7 +89,7 @@ class NovaTabTranslatable extends Field
         ]);
     }
 
-    protected function createTranslatableFields()
+    protected function createTranslatableFields(): void
     {
         collect($this->locales)
             ->crossJoin($this->originalFields)
@@ -243,21 +247,21 @@ class NovaTabTranslatable extends Field
         return $translatedField;
     }
 
-    public function resolve($resource, $attribute = null)
+    public function resolve($resource, $attribute = null): void
     {
         foreach ($this->data as $field) {
             $field->resolve($resource, $attribute);
         }
     }
 
-    public function fillInto($request, $model, $attribute, $requestAttribute = null)
+    public function fillInto($request, $model, $attribute, $requestAttribute = null): void
     {
         foreach ($this->data as $field) {
             $field->fill($request, $model);
         }
     }
 
-    public function getCreationRules(NovaRequest $request)
+    public function getCreationRules(NovaRequest $request): array
     {
         $fieldsRules = $this->getSituationalRulesSet($request, 'creationRules');
 
@@ -267,7 +271,7 @@ class NovaTabTranslatable extends Field
         );
     }
 
-    protected function getSituationalRulesSet(NovaRequest $request, string $propertyName = 'rules')
+    protected function getSituationalRulesSet(NovaRequest $request, string $propertyName = 'rules'): array
     {
         $fieldsRules = [$this->attribute => []];
 
@@ -280,7 +284,7 @@ class NovaTabTranslatable extends Field
         return $fieldsRules;
     }
 
-    public function getUpdateRules(NovaRequest $request)
+    public function getUpdateRules(NovaRequest $request): array
     {
         $fieldsRules = $this->getSituationalRulesSet($request, 'updateRules');
 
@@ -290,7 +294,7 @@ class NovaTabTranslatable extends Field
         );
     }
 
-    public function getRules(NovaRequest $request)
+    public function getRules(NovaRequest $request): array
     {
         return $this->getSituationalRulesSet($request);
     }
