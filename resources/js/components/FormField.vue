@@ -108,7 +108,7 @@ export default {
         },
         switchToErrorTab() {
             Object.keys(this.errors.errors).find((key) => {
-                let lang = key.substr(key.length - 2);
+                const lang = key.match(/^translations_.+?_([a-z]{2}(?:_[A-Za-z]{2,})*)$/)[1] ?? '';
                 if (Object.keys(this.field.requiredLocales).includes(lang)) {
                     this.selectedLang = lang;
                     return true;
