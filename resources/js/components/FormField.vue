@@ -116,9 +116,9 @@ export default {
         updateErrorLanguages() {
             this.errorLanguages.clear();
             Object.keys(this.errors.errors).forEach((key) => {
-                const lang = key.match(/translations_(.*)_([a-z]{2})/);
-                if (lang && lang.length > 2) {
-                    this.errorLanguages.add(lang[2]);
+                const lang = key.match(/^translations_.+?_([a-z]{2}(?:_[A-Za-z]{2,})*)$/);
+                if (lang && lang.length > 1) {
+                    this.errorLanguages.add(lang[1]);
                 }
             });
         },
