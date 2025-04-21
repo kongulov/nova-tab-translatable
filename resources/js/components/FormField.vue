@@ -66,9 +66,15 @@ export default {
 
     props: ['field', 'resourceId', 'resourceName', 'errors', 'viaResource', 'viaRelationship', 'viaResourceId'],
 
+    data() {
+        return {
+            errorLanguages: new Set(),
+        };
+    },
     watch:{
         errors() {
             this.switchToErrorTab();
+            this.updateErrorLanguages();
         }
     },
     methods: {
@@ -109,15 +115,18 @@ export default {
                 }
             })
         },
-        checkError(lang) {
-            for (var key in this.errors.errors) {
-                if (key.substr(key.length - 2) === lang) {
-                    return true;
+        updateErrorLanguages() {
+            this.errorLanguages.clear();
+            Object.keys(this.errors.errors).forEach((key) => {
+                const lang = key.match(/translations_(.*)_([a-z]{2})/);
+                if (lang && lang.length > 2) {
+                    this.errorLanguages.add(lang[2]);
                 }
-            }
-
-            return false;
-        }
+            });
+        },
+        checkError(lang) {
+            return this.errorLanguages.has(lang);
+        },
     },
     computed: {},
 }
