@@ -115,6 +115,7 @@ class NovaTabTranslatable extends Field
         $translatedField->withMeta([
             'defaultValue' => $translatedField->defaultCallback,
             'locale' => $locale,
+            'originalAttribute' => $originalAttribute,
             'showOnIndex' => $translatedField->showOnIndex,
             'showOnDetail' => $translatedField->showOnDetail,
             'showOnCreation' => $translatedField->showOnCreation,
@@ -166,11 +167,38 @@ class NovaTabTranslatable extends Field
                     $this->setTranslation($model, $originalAttribute, $locale, array_values($blocks ?? []));
                 });
         } elseif ($originalField instanceof Image || $originalField instanceof File) {
-            $translatedField
-                ->store(function ($request, $model, $attribute, $requestAttribute) use ($locale, $originalAttribute, $translatedField) {
-                    $file = $request->file($requestAttribute)->store($translatedField->getStorageDir(), $translatedField->getStorageDisk());
+            // Keep the field's own storage callback (it carries storeAs(), storeOriginalName(), storeSize()
+            // or a user defined store()) and only redirect whatever it produces into the translations.
+            $nativeStore = $translatedField->storageCallback;
 
-                    $this->setTranslation($model, $originalAttribute, $locale, $file);
+            $translatedField
+                ->store(function ($request, $model, $attribute, $requestAttribute, $disk = null, $storageDir = null) use ($nativeStore, $locale, $originalAttribute) {
+                    // storeAs() callbacks usually reach for the original request key, which is renamed here
+                    if (!$request->hasFile($originalAttribute) && !$request->has($originalAttribute)) {
+                        $request->merge([$originalAttribute => $request->file($requestAttribute)]);
+                    }
+
+                    $result = call_user_func($nativeStore, $request, $model, $attribute, $requestAttribute, $disk, $storageDir);
+
+                    if ($result === true || $result instanceof \Closure) return $result;
+
+                    if (!is_array($result)) $result = [$attribute => $result];
+
+                    foreach ($result as $key => $value) {
+                        // the file path itself, under either the translated or the original attribute name
+                        if ($key === $attribute || $key === $originalAttribute) {
+                            $this->setTranslation($model, $originalAttribute, $locale, $value);
+                            continue;
+                        }
+
+                        // storeOriginalName()/storeSize() columns: per locale when they are translatable
+                        if (is_object($model) && method_exists($model, 'isTranslatableAttribute') && $model->isTranslatableAttribute($key)) {
+                            $model->setTranslation($key, $locale, $value);
+                            continue;
+                        }
+
+                        $model->{$key} = $value;
+                    }
 
                     return true;
                 })

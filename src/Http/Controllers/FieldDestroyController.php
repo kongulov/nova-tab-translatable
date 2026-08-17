@@ -7,6 +7,8 @@ use Laravel\Nova\Http\Requests\NovaRequest;
 
 class FieldDestroyController extends Controller
 {
+    use FindsTranslatedField;
+
     /**
      * Delete the file at the given field.
      *
@@ -18,21 +20,19 @@ class FieldDestroyController extends Controller
     {
         $resource = $request->findResourceOrFail();
 
-        $explode = explode('_', $request->field);
-        $locale = last($explode);
-        $fieldNameArray = array_slice($explode, 1, -1);
-        $fieldName = implode('_', $fieldNameArray);
+        $field = $this->findTranslatedField($request, $resource);
 
-        if (($resource->translatable === null && $fieldName === '') || !in_array($fieldName, $resource->translatable)){ // not translatable file
+        if (!$field) { // not a translatable file
             $controller = new \Laravel\Nova\Http\Controllers\FieldDestroyController;
 
             return $controller($request);
         }
 
         $resource->authorizeToUpdate($request);
+
         $model = $resource->model();
 
-        $model->forgetTranslation($fieldName, $locale);
+        $model->forgetTranslation($this->fieldOriginalAttribute($field), $this->fieldLocale($field));
         $model->timestamps = false;
         $model->save();
 

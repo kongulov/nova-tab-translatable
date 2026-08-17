@@ -13,6 +13,8 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class FieldPreviewController extends Controller
 {
+    use FindsTranslatedField;
+
     /**
      * Delete the file at the given field.
      *
@@ -24,31 +26,14 @@ class FieldPreviewController extends Controller
     {
         $resource = $request->newResource();
 
-        $explode = explode('_', $request->field);
-        $locale = last($explode);
-        $fieldNameArray = array_slice($explode, 1, -1);
-        $fieldName = implode('_', $fieldNameArray);
+        /** @var \Laravel\Nova\Fields\Field&\Laravel\Nova\Contracts\Previewable|null $field */
+        $field = $this->findTranslatedField($request, $resource);
 
-        if (($resource->translatable === null && $fieldName === '') || !in_array($fieldName, $resource->translatable)) { // not translatable file
+        if (!$field) { // not a translatable file
             $controller = new \Laravel\Nova\Http\Controllers\FieldPreviewController;
 
             return $controller($request);
         }
-
-        $tabs = $resource->updateFields($request)->whereInstanceOf(NovaTabTranslatable::class);
-
-        /** @var \Laravel\Nova\Fields\Field&\Laravel\Nova\Contracts\Previewable&false $field */
-        $field = false;
-
-        foreach ($tabs as $tab) {
-            $field = collect($tab->data)->first(function($field) use ($request){
-                return isset($field->attribute) &&
-                    $field->attribute == $request->field;
-            });
-            if($field) break;
-        }
-
-        if (!$field) abort(404);
 
         $request->validate(['value' => ['nullable', 'string']]);
 
