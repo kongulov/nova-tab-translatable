@@ -12,6 +12,9 @@ use Illuminate\Support\Str;
 use Laravel\Nova\Fields\Field;
 use Laravel\Nova\Fields\File;
 use Laravel\Nova\Fields\Image;
+use Laravel\Nova\Fields\Repeater;
+use Laravel\Nova\Fields\Repeater\Presets\JSON as JsonPreset;
+use Laravel\Nova\Fields\Repeater\RepeatableCollection;
 use Laravel\Nova\Fields\Slug;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Laravel\Nova\Fields\SupportsDependentFields;
@@ -129,16 +132,45 @@ class NovaTabTranslatable extends Field
         $translatedField->panel = $this->panel;
 
         $translatedField
-            ->resolveUsing(function ($value, Model $model) use ($translatedField, $locale, $originalAttribute) {
-                return $model->translations[$originalAttribute][$locale] ?? '';
+            ->resolveUsing(function ($value, $model) use ($translatedField, $locale, $originalAttribute) {
+                if ($model instanceof Model) return $model->translations[$originalAttribute][$locale] ?? '';
+
+                // Repeater rows (and other non-model datasets) arrive as array/Fluent
+                return data_get($model, $originalAttribute . '.' . $locale, '');
             });
 
-        if ($originalField instanceof Image || $originalField instanceof File) {
+        if ($this->isJsonRepeater($originalField)) {
+            $translatedField
+                ->resolveUsing(function ($value, $model) use ($originalField, $locale, $originalAttribute) {
+                    $blocks = $model instanceof Model
+                        ? ($model->translations[$originalAttribute][$locale] ?? [])
+                        : data_get($model, $originalAttribute . '.' . $locale, []);
+
+                    return RepeatableCollection::make($blocks ?? [])
+                        ->filter(fn ($block) => isset($block['type']))
+                        ->map(fn ($block) => $originalField->repeatables->newRepeatableByKey($block['type'], $block['fields'] ?? []))
+                        ->values();
+                })
+                ->fillUsing(function ($request, $model, $attribute, $requestAttribute) use ($originalField, $locale, $originalAttribute) {
+                    // Let Nova's own preset build the blocks on a throwaway model, then store them as a translation
+                    $proxy = new class extends Model {
+                    };
+
+                    $callback = $originalField->getPreset()
+                        ->set($request, $proxy, $requestAttribute, $originalField->repeatables, $originalField->uniqueField);
+
+                    if (is_callable($callback)) $callback();
+
+                    $blocks = json_decode($proxy->getAttributes()[$requestAttribute] ?? '[]', true);
+
+                    $this->setTranslation($model, $originalAttribute, $locale, array_values($blocks ?? []));
+                });
+        } elseif ($originalField instanceof Image || $originalField instanceof File) {
             $translatedField
                 ->store(function ($request, $model, $attribute, $requestAttribute) use ($locale, $originalAttribute, $translatedField) {
                     $file = $request->file($requestAttribute)->store($translatedField->getStorageDir(), $translatedField->getStorageDisk());
 
-                    $model->setTranslation($originalAttribute, $locale, $file);
+                    $this->setTranslation($model, $originalAttribute, $locale, $file);
 
                     return true;
                 })
@@ -158,19 +190,19 @@ class NovaTabTranslatable extends Field
                 });
         } else {
             $translatedField->fillUsing(function (Request $request, $model, $attribute, $requestAttribute) use ($locale, $originalAttribute, $translatedField) {
-                $savedData = $request->get($requestAttribute);
+                $savedData = $request->input($requestAttribute);
                 if (!isset($savedData)) {
                     foreach ($request->all() as $key => $value) {
                         if (!is_array($value)) continue;
-                        if (!isset($request->get($key)[$requestAttribute])) continue;
+                        if (!isset($value[$requestAttribute])) continue;
 
-                        $savedData = $request->get($key)[$requestAttribute];
+                        $savedData = $value[$requestAttribute];
                     }
                 }
 
                 if ($this->isJson($savedData)) $savedData = json_decode($savedData, true);
 
-                $model->setTranslation($originalAttribute, $locale, $savedData);
+                $this->setTranslation($model, $originalAttribute, $locale, $savedData);
             });
         }
 
@@ -254,11 +286,53 @@ class NovaTabTranslatable extends Field
         }
     }
 
-    public function fillInto($request, $model, $attribute, $requestAttribute = null): void
+    public function fillInto($request, $model, $attribute, $requestAttribute = null)
     {
+        // Inside a Repeater the request keys are nested: "data.0.fields.<attribute>"
+        $prefix = $requestAttribute ? Str::beforeLast($requestAttribute, $attribute) : '';
+
+        $callbacks = [];
+
         foreach ($this->data as $field) {
-            $field->fill($request, $model);
+            $callbacks[] = $field->fillInto($request, $model, $field->attribute, $prefix . $field->attribute);
         }
+
+        $callbacks = array_filter($callbacks, 'is_callable');
+
+        if (count($callbacks)) {
+            return function () use ($callbacks) {
+                foreach ($callbacks as $callback) $callback();
+            };
+        }
+
+        return null;
+    }
+
+    /**
+     * A Repeater using the JSON preset stores its blocks in the field's own column, so it can be translated.
+     * The HasMany preset writes to a relation instead and is not translatable.
+     */
+    protected function isJsonRepeater(Field $field): bool
+    {
+        return $field instanceof Repeater && $field->getPreset() instanceof JsonPreset;
+    }
+
+    /**
+     * Store a translation on an Eloquent model, a Repeater row (Nova Fluent) or any array-like target.
+     */
+    protected function setTranslation($model, string $attribute, string $locale, $value): void
+    {
+        if (is_object($model) && method_exists($model, 'setTranslation')) {
+            $model->setTranslation($attribute, $locale, $value);
+
+            return;
+        }
+
+        $translations = data_get($model, $attribute);
+        $translations = is_array($translations) ? $translations : [];
+        $translations[$locale] = $value;
+
+        $model->{$attribute} = $translations;
     }
 
     public function getCreationRules(NovaRequest $request): array
