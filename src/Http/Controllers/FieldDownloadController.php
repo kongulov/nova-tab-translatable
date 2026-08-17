@@ -5,12 +5,13 @@ namespace Kongulov\NovaTabTranslatable\Http\Controllers;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Storage;
-use Kongulov\NovaTabTranslatable\NovaTabTranslatable;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class FieldDownloadController extends Controller
 {
+    use FindsTranslatedField;
+
     /**
      * Download the given field's contents.
      *
@@ -23,40 +24,29 @@ class FieldDownloadController extends Controller
     {
         $resource = $request->findResourceOrFail();
 
-        $explode = explode('_', $request->field);
-        $locale = last($explode);
-        $fieldNameArray = array_slice($explode, 1, -1);
-        $fieldName = implode('_', $fieldNameArray);
+        $field = $this->findTranslatedField($request, $resource);
 
-        if (($resource->translatable === null && $fieldName === '') || !in_array($fieldName, $resource->translatable)){ // not translatable file
+        if (!$field) { // not a translatable file
             $controller = new \Laravel\Nova\Http\Controllers\FieldDownloadController();
 
             return $controller->show($request);
         }
 
         $resource->authorizeToView($request);
+
         $model = $resource->model();
-        $value = $model->getTranslation($fieldName, $locale);
-
-        $tabs = $resource->updateFields($request)->whereInstanceOf(NovaTabTranslatable::class);
-
-        $field = false;
-
-        foreach ($tabs as $tab) {
-            $field = collect($tab->data)->first(function($field) use ($request){
-                return isset($field->attribute) &&
-                    $field->attribute == $request->field;
-            });
-        }
-
-        if (!$field) abort(404);
+        $locale = $this->fieldLocale($field);
+        $value = $this->translationFor($model, $this->fieldOriginalAttribute($field), $locale);
 
         $disk = $field->getStorageDisk();
 
-        if (!Storage::disk($disk)->exists($value)) abort(404);
+        if (!$value || !Storage::disk($disk)->exists($value)) abort(404);
 
-        $path = Storage::disk($disk)->path($value);
+        // honour storeOriginalName() so the browser gets the name the file was uploaded with
+        $name = $field->originalNameColumn
+            ? $this->translationFor($model, $field->originalNameColumn, $locale)
+            : null;
 
-        return response()->download($path);
+        return response()->download(Storage::disk($disk)->path($value), $name ?: null);
     }
 }

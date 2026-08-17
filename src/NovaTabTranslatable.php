@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Laravel\Nova\Fields\Field;
+use Laravel\Nova\Fields\File;
 use Laravel\Nova\Fields\Image;
 use Laravel\Nova\Fields\Slug;
 use Laravel\Nova\Http\Requests\NovaRequest;
@@ -107,6 +108,7 @@ class NovaTabTranslatable extends Field
         $translatedField->withMeta([
             'defaultValue' => $translatedField->defaultCallback,
             'locale' => $locale,
+            'originalAttribute' => $originalAttribute,
             'showOnIndex' => $translatedField->showOnIndex,
             'showOnDetail' => $translatedField->showOnDetail,
             'showOnCreation' => $translatedField->showOnCreation,
@@ -128,12 +130,39 @@ class NovaTabTranslatable extends Field
                 return $model->translations[$originalAttribute][$locale] ?? '';
             });
 
-        if ($originalField instanceof Image){
-            $translatedField
-                ->store(function ($request, $model, $attribute, $requestAttribute) use ($locale, $originalAttribute, $translatedField) {
-                    $file = $request->file($requestAttribute)->store($translatedField->getStorageDir(), $translatedField->getStorageDisk());
+        if ($originalField instanceof Image || $originalField instanceof File){
+            // Keep the field's own storage callback (it carries storeAs(), storeOriginalName(), storeSize()
+            // or a user defined store()) and only redirect whatever it produces into the translations.
+            $nativeStore = $this->rebindStorageCallback($translatedField->storageCallback, $translatedField);
 
-                    $model->setTranslation($originalAttribute, $locale, $file);
+            $translatedField
+                ->store(function ($request, $model, $attribute, $requestAttribute, $disk = null, $storageDir = null) use ($nativeStore, $locale, $originalAttribute) {
+                    // storeAs() callbacks usually reach for the original request key, which is renamed here
+                    if (!$request->hasFile($originalAttribute) && !$request->has($originalAttribute)) {
+                        $request->merge([$originalAttribute => $request->file($requestAttribute)]);
+                    }
+
+                    $result = call_user_func($nativeStore, $request, $model, $attribute, $requestAttribute, $disk, $storageDir);
+
+                    if ($result === true || $result instanceof \Closure) return $result;
+
+                    if (!is_array($result)) $result = [$attribute => $result];
+
+                    foreach ($result as $key => $value) {
+                        // the file path itself, under either the translated or the original attribute name
+                        if ($key === $attribute || $key === $originalAttribute || $key === 'translations') {
+                            $model->setTranslation($originalAttribute, $locale, $value);
+                            continue;
+                        }
+
+                        // storeOriginalName()/storeSize() columns: per locale when they are translatable
+                        if (is_object($model) && method_exists($model, 'isTranslatableAttribute') && $model->isTranslatableAttribute($key)) {
+                            $model->setTranslation($key, $locale, $value);
+                            continue;
+                        }
+
+                        $model->{$key} = $value;
+                    }
 
                     return true;
                 })
@@ -165,6 +194,22 @@ class NovaTabTranslatable extends Field
         $translatedField = $this->compatibilityWithOtherPlugins($translatedField);
 
         return $translatedField;
+    }
+
+    /**
+     * Nova's built in storage callback reads $this->attribute (e.g. to look the uploaded file up in the
+     * request), so it has to run against the translated field instead of the original one.
+     * Callbacks passed by the user through store() are left alone.
+     */
+    protected function rebindStorageCallback($storageCallback, Field $translatedField)
+    {
+        if (!$storageCallback instanceof \Closure) return $storageCallback;
+
+        $boundTo = (new \ReflectionFunction($storageCallback))->getClosureThis();
+
+        if (!$boundTo instanceof Field) return $storageCallback;
+
+        return \Closure::bind($storageCallback, $translatedField, get_class($translatedField));
     }
 
     protected function setRules($translatedField)
