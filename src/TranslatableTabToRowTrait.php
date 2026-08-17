@@ -22,18 +22,48 @@ trait TranslatableTabToRowTrait
         $method = $this->fieldsMethod($request);
 
         // needs to be filtered once to resolve Panels
-        $fields = $this->filter($this->{$method}($request));
+        $fields = array_values($this->filter($this->{$method}($request)));
+
+        if (!$this->extractableRequest($request, $this->model()) || !$this->doesRouteRequireChildFields()) {
+            return new FieldCollection($fields);
+        }
+
+        return $this->replaceTabsWithChildFields($fields, $request);
+    }
+
+    /**
+     * Nova resolves downloadable, deletable and preview fields through buildAvailableFields(), which never
+     * goes through availableFields() — so the tabs have to be expanded here as well. Otherwise a File field
+     * inside a tab cannot be found and its download/delete request ends up as a 404 (issue #41).
+     *
+     * @param array $methods
+     * @return FieldCollection
+     */
+    public function buildAvailableFields(NovaRequest $request, array $methods): FieldCollection
+    {
+        return $this->replaceTabsWithChildFields(
+            parent::buildAvailableFields($request, $methods)->values()->all(),
+            $request
+        );
+    }
+
+    /**
+     * Replace every NovaTabTranslatable with the fields it wraps.
+     *
+     * @param array $fields
+     * @return FieldCollection
+     */
+    protected function replaceTabsWithChildFields(array $fields, NovaRequest $request): FieldCollection
+    {
+        $this->childFieldsArr = [];
+
         $availableFields = [];
 
         foreach ($fields as $key => $field) {
             $availableFields[] = $this->filterFieldForRequest($field, $request);
 
             if ($field instanceof NovaTabTranslatable) {
-                if($this->extractableRequest($request, $this->model())) {
-                    if ($this->doesRouteRequireChildFields()) {
-                        $this->extractChildFields($field, $key);
-                    }
-                }
+                $this->extractChildFields($field, $key);
             }
         }
 
@@ -41,15 +71,13 @@ trait TranslatableTabToRowTrait
             for ($i = count($fields)-1; $i >= 0; $i--){
                 $field = $fields[$i];
                 if ($field instanceof NovaTabTranslatable) {
-                    array_splice($availableFields, $i+1,0, $this->childFieldsArr[$i]);
+                    array_splice($availableFields, $i+1, 0, $this->childFieldsArr[$i] ?? []);
                     unset($availableFields[$i]);
                 }
             }
         }
 
-        $availableFields = new FieldCollection(array_values($this->filter($availableFields)));
-
-        return $availableFields;
+        return new FieldCollection(array_values($this->filter($availableFields)));
     }
 
     /**
