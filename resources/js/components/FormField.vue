@@ -93,10 +93,23 @@ export default {
         },
         fill(formData) {
             _.each(this.field.fields, field => {
-                if (field.fill) {
-                    field.fill(formData)
-                }
+                if (!field.fill) return
+
+                field.fill(formData)
+                this.keepUntouchedFile(formData, field)
             })
+        },
+        /**
+         * A File/Image field sends nothing while its file stays untouched. Inside a Repeater the row is
+         * rebuilt from the request alone, so those locales would be dropped on save. Send the value the
+         * field already holds so the server can keep it.
+         */
+        keepUntouchedFile(formData, field) {
+            if (field.component !== 'file-field') return
+            if (!field.value) return
+            if (typeof formData.has !== 'function' || formData.has(field.attribute)) return
+
+            formData.append(field.attribute + '__keep_translation', field.value)
         },
         handleChange(value) {
             this.value = value

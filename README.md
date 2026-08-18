@@ -157,6 +157,33 @@ class YourResource extends Resource
 }
 ```
 
+### Inside a Repeater
+
+`NovaTabTranslatable` works inside a `Repeater` that uses the JSON preset:
+
+```php
+Repeater::make('Data')->repeatables([
+    MyBlock::make('Item'),
+]),
+```
+
+If the Repeater also sets `uniqueField()`, use the `TranslatableJson` preset. Nova then prunes every
+attribute it cannot match back to a field of the repeatable, and since the translated attributes belong
+to the fields `NovaTabTranslatable` wraps, the whole row would be emptied:
+
+```php
+use Kongulov\NovaTabTranslatable\Repeater\TranslatableJson;
+
+Repeater::make('Data')
+    ->uniqueField('uuid')
+    ->preset(new TranslatableJson)
+    ->repeatables([
+        MyBlock::make('Item'),
+    ]),
+```
+
+The preset keeps Nova's pruning for every other attribute, and on Nova 4 it changes nothing.
+
 ## Credits
 
 - [Ramiz Kongulov](https://github.com/kongulov)

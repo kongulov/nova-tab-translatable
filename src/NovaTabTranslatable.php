@@ -31,6 +31,12 @@ class NovaTabTranslatable extends Field
      */
     public $component = 'nova-tab-translatable';
 
+    /**
+     * Suffix the form component uses to send the value a File/Image field already holds, so that
+     * locales whose file was not touched survive a save. See keepUntouchedFiles().
+     */
+    public const KEEP_SUFFIX = '__keep_translation';
+
     public $name = 'Tab translatable';
     public $data = [];
     private $locales = [];
@@ -325,6 +331,9 @@ class NovaTabTranslatable extends Field
             $callbacks[] = $field->fillInto($request, $model, $field->attribute, $prefix . $field->attribute);
         }
 
+        // Before the deferred callbacks run, so an actual upload still wins over the kept value
+        $this->keepUntouchedFiles($request, $model, $prefix);
+
         $callbacks = array_filter($callbacks, 'is_callable');
 
         if (count($callbacks)) {
@@ -343,6 +352,37 @@ class NovaTabTranslatable extends Field
     protected function isJsonRepeater(Field $field): bool
     {
         return $field instanceof Repeater && $field->getPreset() instanceof JsonPreset;
+    }
+
+    /**
+     * A File/Image field submits nothing when its file has not changed. An Eloquent model survives that,
+     * because setTranslation() merges into the translations already loaded from the database — but a
+     * Repeater row is built from the request alone, so every untouched locale would silently vanish and
+     * only the edited one would remain (issue #40).
+     *
+     * The form component sends the current value alongside, under KEEP_SUFFIX; restore it here for the
+     * locales that received nothing.
+     */
+    protected function keepUntouchedFiles($request, $model, string $prefix): void
+    {
+        // Eloquent targets merge on their own, leave that path untouched
+        if (is_object($model) && method_exists($model, 'setTranslation')) return;
+
+        foreach ($this->data as $field) {
+            if (!$field instanceof File && !$field instanceof Image) continue;
+
+            $locale = $field->meta['locale'] ?? null;
+            $originalAttribute = $field->meta['originalAttribute'] ?? null;
+
+            if (!$locale || !$originalAttribute) continue;
+
+            // something was uploaded for this locale, nothing to restore
+            if (filled(data_get($model, $originalAttribute . '.' . $locale))) continue;
+
+            $kept = $request->input($prefix . $field->attribute . self::KEEP_SUFFIX);
+
+            if (filled($kept)) $this->setTranslation($model, $originalAttribute, $locale, $kept);
+        }
     }
 
     /**
