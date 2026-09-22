@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Kongulov\NovaTabTranslatable\NovaTabTranslatable;
 use Laravel\Nova\Contracts\Previewable;
 use Laravel\Nova\Http\Requests\NovaRequest;
+use Laravel\Nova\Http\Requests\ResourceCreateOrAttachRequest;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class FieldPreviewController extends Controller
