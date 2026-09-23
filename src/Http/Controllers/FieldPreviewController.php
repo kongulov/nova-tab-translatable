@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Kongulov\NovaTabTranslatable\NovaTabTranslatable;
 use Laravel\Nova\Contracts\Previewable;
 use Laravel\Nova\Http\Requests\NovaRequest;
+use Laravel\Nova\Http\Requests\ResourceCreateOrAttachRequest;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class FieldPreviewController extends Controller
@@ -32,7 +33,9 @@ class FieldPreviewController extends Controller
         if (!$field) { // not a translatable file
             $controller = new \Laravel\Nova\Http\Controllers\FieldPreviewController;
 
-            return $controller($request);
+            return $controller->create( 
+                ResourceCreateOrAttachRequest::createFrom($request)
+            );
         }
 
         $request->validate(['value' => ['nullable', 'string']]);
