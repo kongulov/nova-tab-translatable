@@ -221,6 +221,8 @@ class NovaTabTranslatable extends Field
 
                     return Storage::disk($disk)->url($value);
                 });
+
+            $this->rebindFileCallbacks($originalField, $translatedField, $locale);
         } else {
             $translatedField->fillUsing(function (Request $request, $model, $attribute, $requestAttribute) use ($locale, $originalAttribute, $translatedField) {
                 $savedData = $request->input($requestAttribute);
@@ -242,6 +244,39 @@ class NovaTabTranslatable extends Field
         $translatedField = $this->compatibilityWithOtherPlugins($translatedField);
 
         return $translatedField;
+    }
+
+    /**
+     * Nova's default thumbnail/preview/download callbacks read $this->value, bound to the field they were
+     * created on. A clone keeps them bound to the original field, which never holds a value, so point them
+     * at the translated field instead. Callbacks set by the user are bound elsewhere and stay untouched,
+     * and nothing here calls exists() on the disk, which is slow on S3/GCS (issues #53, #55).
+     */
+    protected function rebindFileCallbacks(Field $originalField, Field $translatedField, string $locale): void
+    {
+        foreach (['thumbnailUrlCallback', 'previewUrlCallback'] as $property) {
+            if ($this->isBoundTo($translatedField->{$property} ?? null, $originalField)) {
+                $translatedField->{$property} = $translatedField->{$property}->bindTo($translatedField);
+            }
+        }
+
+        // the default download names the file after storeOriginalName(), which is translated per locale
+        if ($this->isBoundTo($translatedField->downloadResponseCallback ?? null, $originalField)) {
+            $translatedField->download(function ($request, $model) use ($translatedField, $locale) {
+                $column = $translatedField->originalNameColumn;
+
+                $name = $column && method_exists($model, 'isTranslatableAttribute') && $model->isTranslatableAttribute($column)
+                    ? $model->getTranslation($column, $locale)
+                    : ($column ? $model->{$column} : null);
+
+                return Storage::disk($translatedField->getStorageDisk())->download($translatedField->value, $name ?: null);
+            });
+        }
+    }
+
+    protected function isBoundTo($callback, object $object): bool
+    {
+        return $callback instanceof \Closure && (new \ReflectionFunction($callback))->getClosureThis() === $object;
     }
 
     protected function setRules($translatedField)

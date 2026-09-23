@@ -38,18 +38,4 @@ trait FindsTranslatedField
     {
         return $field->meta['originalAttribute'];
     }
-
-    /**
-     * Read a translation without blowing up on attributes the model does not translate.
-     */
-    protected function translationFor($model, string $attribute, string $locale)
-    {
-        if (!method_exists($model, 'getTranslation')) return null;
-
-        if (method_exists($model, 'isTranslatableAttribute') && !$model->isTranslatableAttribute($attribute)) {
-            return $model->{$attribute} ?? null;
-        }
-
-        return $model->getTranslation($attribute, $locale);
-    }
 }

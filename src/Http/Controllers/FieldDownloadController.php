@@ -3,7 +3,6 @@
 namespace Kongulov\NovaTabTranslatable\Http\Controllers;
 
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Storage;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -33,19 +32,12 @@ class FieldDownloadController extends Controller
 
         $resource->authorizeToView($request);
 
-        $model = $resource->model();
-        $locale = $this->fieldLocale($field);
-        $value = $this->translationFor($model, $this->fieldOriginalAttribute($field), $locale);
+        // resolve the translated value, then let the field's own download() callback answer: it honours a
+        // user defined download() and streams from any disk, not only local ones (issue #55)
+        $field->resolve($resource->resource);
 
-        $disk = $field->getStorageDisk();
+        if (empty($field->value) || !($field->downloadsAreEnabled ?? true)) abort(404);
 
-        if (!$value || !Storage::disk($disk)->exists($value)) abort(404);
-
-        // honour storeOriginalName() so the browser gets the name the file was uploaded with
-        $name = $field->originalNameColumn
-            ? $this->translationFor($model, $field->originalNameColumn, $locale)
-            : null;
-
-        return response()->download(Storage::disk($disk)->path($value), $name ?: null);
+        return $field->toDownloadResponse($request, $resource);
     }
 }

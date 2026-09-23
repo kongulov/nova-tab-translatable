@@ -33,9 +33,10 @@ class FieldPreviewController extends Controller
         if (!$field) { // not a translatable file
             $controller = new \Laravel\Nova\Http\Controllers\FieldPreviewController;
 
-            return $controller->create( 
-                ResourceCreateOrAttachRequest::createFrom($request)
-            );
+            // Nova 5 replaced __invoke() with create()/update() (issue #56)
+            return method_exists($controller, 'create')
+                ? $controller->create(ResourceCreateOrAttachRequest::createFrom($request))
+                : $controller($request);
         }
 
         $request->validate(['value' => ['nullable', 'string']]);

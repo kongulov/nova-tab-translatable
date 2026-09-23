@@ -13,10 +13,10 @@
             </span>
 
             <div id="hamburger-menu" v-show="hamburgerMenu.length">
-                <div class="hamburger-icon" @click="menuIsOpen = !menuIsOpen" :data-hiddencount="hamburgerMenu.length" :class="{'fs14':hamburgerMenu.length < 100}">
+                <div class="hamburger-icon" @click="toggleMenu" :data-hiddencount="hamburgerMenu.length" :class="{'fs14':hamburgerMenu.length < 100}">
                     <span></span>
                 </div>
-                <div class="hamburger-content tab-items" v-show="menuIsOpen">
+                <div class="hamburger-content tab-items" v-show="menuIsOpen" :style="menuStyle">
                     <span class="tab-item"
                           v-for="lang in reversedHamburgerMenu"
                           ref="tabItem"

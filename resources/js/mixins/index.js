@@ -4,6 +4,7 @@ export default {
             selectedLang: '',
 
             menuIsOpen:false,
+            menuStyle: {},
             totalSpace: 0,
             lineMenu: [],
             hamburgerMenu: [],
@@ -15,6 +16,8 @@ export default {
         this.lineMenu = this.field.languages;
 
         window.addEventListener("resize", this.calculateMenu);
+        window.addEventListener("resize", this.closeMenu);
+        window.addEventListener("scroll", this.closeMenu, true);
 
         this.$nextTick(() => {
             this.$refs.tabItem.forEach(col => {
@@ -25,8 +28,10 @@ export default {
             this.calculateMenu();
         })
     },
-    destroyed() {
+    unmounted() {
         window.removeEventListener("resize", this.calculateMenu);
+        window.removeEventListener("resize", this.closeMenu);
+        window.removeEventListener("scroll", this.closeMenu, true);
     },
     computed: {
         reversedHamburgerMenu(){
@@ -52,6 +57,30 @@ export default {
                 numOfVisibleItems += 1;
                 this.calculateMenu();
             }
+        },
+        /**
+         * The panel around the field clips overflow, so an absolutely positioned dropdown gets cut off (issue #46).
+         * Pin it to the viewport under the icon instead; it closes on scroll/resize rather than drifting away.
+         */
+        toggleMenu(event){
+            if (this.menuIsOpen) return this.closeMenu();
+
+            const rect = event.currentTarget.getBoundingClientRect();
+
+            this.menuStyle = {
+                position: 'fixed',
+                top: rect.bottom + 'px',
+                right: (document.documentElement.clientWidth - rect.right) + 'px',
+                maxHeight: Math.max(120, Math.min(300, window.innerHeight - rect.bottom - 8)) + 'px',
+                zIndex: 50,
+            };
+            this.menuIsOpen = true;
+        },
+        closeMenu(event){
+            // scrolling inside the dropdown itself must not close it
+            if (event && event.type === 'scroll' && event.target instanceof Element && event.target.closest('.hamburger-content')) return;
+
+            this.menuIsOpen = false;
         },
         switchLanguage(lang){
             this.selectedLang = lang;
