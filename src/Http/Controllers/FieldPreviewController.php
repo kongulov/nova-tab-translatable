@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Storage;
 use Kongulov\NovaTabTranslatable\NovaTabTranslatable;
 use Laravel\Nova\Contracts\Previewable;
 use Laravel\Nova\Http\Requests\NovaRequest;
-use Laravel\Nova\Http\Requests\ResourceCreateOrAttachRequest;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class FieldPreviewController extends Controller
@@ -31,12 +30,8 @@ class FieldPreviewController extends Controller
         $field = $this->findTranslatedField($request, $resource);
 
         if (!$field) { // not a translatable file
-            $controller = new \Laravel\Nova\Http\Controllers\FieldPreviewController;
-
             // Nova 5 replaced __invoke() with create()/update() (issue #56)
-            return method_exists($controller, 'create')
-                ? $controller->create(ResourceCreateOrAttachRequest::createFrom($request))
-                : $controller($request);
+            return $this->forwardToNova(\Laravel\Nova\Http\Controllers\FieldPreviewController::class, 'create', '__invoke');
         }
 
         $request->validate(['value' => ['nullable', 'string']]);

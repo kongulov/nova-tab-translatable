@@ -40,7 +40,7 @@
                     :resource-name="resourceName"
                     :resource-id="resourceId"
                     :resource="resource"
-                    :field="fieldDefaultValue(component)"
+                    :field="withDefaultValue(component)"
                     :errors="errors"
                     :via-resource="viaResource"
                     :via-resource-id="viaResourceId"
@@ -58,7 +58,7 @@ export default {
     mixins: [IndexMixin],
     props: ['field', 'resourceId', 'resourceName', 'errors', 'viaResource', 'viaRelationship', 'viaResourceId'],
     methods:{
-        fieldDefaultValue(field) {
+        withDefaultValue(field) {
             if (field.value === '' && field.defaultValue !== '') field.value = field.defaultValue;
 
             return field;

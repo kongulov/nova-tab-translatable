@@ -247,14 +247,14 @@ class NovaTabTranslatable extends Field
     }
 
     /**
-     * Nova's default thumbnail/preview/download callbacks read $this->value, bound to the field they were
+     * Nova's default thumbnail/preview/download/delete callbacks read $this->value, bound to the field they were
      * created on. A clone keeps them bound to the original field, which never holds a value, so point them
      * at the translated field instead. Callbacks set by the user are bound elsewhere and stay untouched,
      * and nothing here calls exists() on the disk, which is slow on S3/GCS (issues #53, #55).
      */
     protected function rebindFileCallbacks(Field $originalField, Field $translatedField, string $locale): void
     {
-        foreach (['thumbnailUrlCallback', 'previewUrlCallback'] as $property) {
+        foreach (['thumbnailUrlCallback', 'previewUrlCallback', 'deleteCallback'] as $property) {
             if ($this->isBoundTo($translatedField->{$property} ?? null, $originalField)) {
                 $translatedField->{$property} = $translatedField->{$property}->bindTo($translatedField);
             }

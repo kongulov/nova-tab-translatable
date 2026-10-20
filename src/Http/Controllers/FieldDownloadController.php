@@ -25,9 +25,7 @@ class FieldDownloadController extends Controller
         $field = $this->findTranslatedField($request, $resource);
 
         if (!$field) { // not a translatable file
-            $controller = new \Laravel\Nova\Http\Controllers\FieldDownloadController;
-
-            return $controller($request);
+            return $this->forwardToNova(\Laravel\Nova\Http\Controllers\FieldDownloadController::class, '__invoke', 'show');
         }
 
         $resource->authorizeToView($request);

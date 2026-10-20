@@ -42,7 +42,7 @@
                     :resource-name="resourceName"
                     :resource-id="resourceId"
                     :resource="resource"
-                    :field="fieldDefaultValue(component)"
+                    :field="withDefaultValue(component)"
                     :errors="errors"
                     :show-help-text="showHelpText"
                     :via-resource="viaResource"
@@ -76,7 +76,9 @@ export default {
         }
     },
     methods: {
-        fieldDefaultValue(field) {
+        // Not named fieldDefaultValue(): Nova's FormField mixin calls this.fieldDefaultValue() with no
+        // argument from data(), so overriding it crashed every form (issue #57)
+        withDefaultValue(field) {
             if (field.value === '' && field.defaultValue !== '') field.value = field.defaultValue;
 
             return field;

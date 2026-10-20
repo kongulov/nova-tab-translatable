@@ -29,6 +29,22 @@ trait FindsTranslatedField
         return null;
     }
 
+    /**
+     * Hand a request that is not about a translated field back to Nova's own controller. Resolved
+     * through the container so the request class Nova type-hints is built for it, and the action is
+     * looked up because Nova renamed some of them between releases (issues #45, #56).
+     */
+    protected function forwardToNova(string $controller, string ...$methods)
+    {
+        $controller = app($controller);
+
+        foreach ($methods ?: ['__invoke'] as $method) {
+            if (method_exists($controller, $method)) return app()->call([$controller, $method]);
+        }
+
+        abort(404);
+    }
+
     protected function fieldLocale(Field $field): string
     {
         return $field->meta['locale'];
